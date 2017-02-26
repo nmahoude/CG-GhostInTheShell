@@ -60,13 +60,13 @@ public class Player {
           for (Factory myFactory : gameState.getFactories()) {
             if (myFactory.isMe() && myFactory.units > 0) {
               int distance = myFactory.getDistanceTo(oppFactory);
-              int oppUnitsEvaluation = oppFactory.units + oppFactory.unitsInTransit[1] + oppFactory.production*(distance+1);
+              int oppUnitsEvaluation = oppFactory.units + oppFactory.unitsInTransit[1] + oppFactory.productionRate*(distance+1);
               int myUnitsEvaluation = oppFactory.unitsInTransit[0];
               if (myUnitsEvaluation < oppUnitsEvaluation && myFactory.units +  myUnitsEvaluation > oppUnitsEvaluation) {
                 int neededCyborgs = oppUnitsEvaluation - myUnitsEvaluation+1;
                 int remainingCyborgs = myFactory.units - neededCyborgs;
                 if (neededCyborgs > 0 && remainingCyborgs > myFactory.unitsInTransit[1]) {
-                  double score = 5*oppFactory.production / distance; 
+                  double score = 5*oppFactory.productionRate / distance; 
                   if (score > bestScore) {
                     bestScore = score;
                     bestOutput = "MOVE "+myFactory.id+" "+oppFactory.id+ " "+neededCyborgs;
@@ -80,11 +80,11 @@ public class Player {
         if (factory.isNeutral()) {
           Factory neutralFactory = factory;
           // System.err.println("Factory "+factory.id+" is free" );
-          for (Factory myFactory : gameState.factories) {
+          for (Factory myFactory : GameState.factories) {
             if (myFactory.isMe() && myFactory.units > 0) {
               int distance = myFactory.getDistanceTo(factory);
              // System.err.println("One link go to one of my factory ("+link.toFactory.id+")");
-              double score = neutralFactory.production * neutralFactory.production / distance;
+              double score = neutralFactory.productionRate * neutralFactory.productionRate / distance;
              // System.err.println("Score :"+score+ " bc: "+factory.production+" / "+link.distance);
               int neededCyborgs = neutralFactory.units + 1 - neutralFactory.unitsInTransit[0] + neutralFactory.unitsInTransit[1];
               if (neededCyborgs < myFactory.units) {
@@ -99,14 +99,14 @@ public class Player {
       }
       
       // check for bombs !
-      if (gameState.bombs[0] > 0) {
+      if (GameState.me.bombsLeft > 0) {
         Factory toBomb = null;
         Factory from = null;
         for (Factory factory : gameState.getFactories()) {
           if (factory.isOpponent() 
               && 
                 !factory.willBeBombed
-              && ( (turn == 0 && factory.production >= 2) 
+              && ( (turn == 0 && factory.productionRate >= 2) 
               || factory.units > gameState.cyborgsTotal / (gameState.factoryCount * 2))
               ) {
             toBomb = factory;
@@ -121,7 +121,7 @@ public class Player {
         }
         if (toBomb != null && from != null) {
           bestOutput+="; BOMB "+from.id+" "+toBomb.id;
-          
+          GameState.me.bombsLeft--;
         }
       }
       

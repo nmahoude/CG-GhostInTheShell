@@ -2,22 +2,42 @@ package gitc.entities;
 
 import java.util.Scanner;
 
-public class Bomb extends Entity {
+import gitc.GameState;
 
-  public int fromFactory;
-  public int toFactory; // can be -1 !
-  private int turnsToTarget; // can be -1
+public class Bomb extends MovableEntity {
+  private static final int DAMAGE_DURATION = 5;
 
   public Bomb(int id) {
-    super(id);
+    super(0, null);
   }
   
-  public void read(Scanner in) {
-    player = in.nextInt();
-    fromFactory = in.nextInt();
-    toFactory = in.nextInt();
-    turnsToTarget = in.nextInt();
-    int unused = in.nextInt();
-    
+  public Bomb(Owner owner, Factory src, Factory dst, int turnsToTarget) {
+    super(0, owner);
+    source = src;
+    destination = dst;
+    this.remainingTurns = turnsToTarget;
   }
+  
+  @SuppressWarnings("unused")
+  public void read(Scanner in) {
+    readPlayer(in.nextInt());
+    source = GameState.factories[in.nextInt()];
+    int dstIndex = in.nextInt();
+    if (dstIndex != -1) {
+      destination = GameState.factories[dstIndex];
+    } else {
+      destination = GameState.unkownFactory;
+    }
+    remainingTurns = in.nextInt();
+    int unused = in.nextInt();
+  }
+
+  public void explode() {
+    if (destination != null) {
+      int damage = Math.min(destination.units, Math.max(10, destination.units / 2));
+      destination.units -= damage;
+      destination.disabled = DAMAGE_DURATION;
+    }
+  }
+  
 }
