@@ -35,8 +35,18 @@ public class Simulation {
     bombs.clear();
     bombs.addAll(state.getBombs());
     
-    for (int turn = 0; turn < 1; turn++) {
+    for (int turn = 0; turn < AGSolution.DEPTH; turn++) {
       simulate(solution, 0);
+    }
+    
+    AGPlayer me = solution.players.get(0);
+    AGPlayer opp = solution.players.get(1);
+    if (me.dead) {
+      solution.energy = -1_000_000;
+    } else {
+      solution.energy = 
+          (1.0*me.units / (me.units+opp.units)) + 
+          100.0*(1.0*me.production / (me.production+opp.production)); 
     }
     
     state.restoreState();
@@ -46,30 +56,128 @@ public class Simulation {
     newBombs.clear();
     newTroops.clear();
     
+    moveEntities();
+    decreaseFactoriesDisableCoutdown();
+    executeOrders(solution, turnIndex);
+    createFactoryUnits();
+    solveBattles(solution);
+    solveBombs();
+
     // ---
-    // Move Existing troops and bombs
+    // Update score
     // ---
+    for (AGPlayer player : solution.players) {
+      player.units = 0;
+      player.production = 0;
+      player.dead = false;
+    }
+    
+    for (Factory factory : GameState.factories) {
+      if (factory.owner != null) {
+        AGPlayer player = solution.players.get(factory.owner.id);
+        player.units += factory.units;
+        player.production += factory.productionRate;
+      }
+    }
+    for (Troop troop : troops) {
+      if (troop.owner != null) {
+        solution.players.get(troop.owner.id).units += troop.units;
+      }
+    }
+
+    // ---
+    // Check end conditions
+    // ---
+    for (AGPlayer player : solution.players) {
+      if (player.units == 0) {
+        int production = 0;
+        for (Factory factory : GameState.factories) {
+          if (factory.owner == player.owner) {
+            production += factory.productionRate;
+          }
+        }
+        if (production == 0) {
+          player.dead = true;
+        }
+      }
+    }
+  }
+
+  private void solveBombs() {
+    for (Iterator<Bomb> it = bombs.iterator(); it.hasNext();) {
+      Bomb bomb = it.next();
+      if (bomb.remainingTurns <= 0) {
+        bomb.explode();
+        it.remove();
+      }
+    }
+  }
+
+  private void solveBattles(AGSolution solution) {
+    // ---
+    // Solve battles
+    // ---
+    for (Factory factory : GameState.factories) {
+      factory.unitsReadyToFight[0] = factory.unitsReadyToFight[1] = 0;
+    }
+
+    for (Iterator<Troop> it = troops.iterator(); it.hasNext();) {
+      Troop troop = it.next();
+      if (troop.remainingTurns <= 0) {
+        troop.destination.unitsReadyToFight[troop.owner.id] += troop.units;
+        it.remove();
+      }
+    }
+    for (Factory factory : GameState.factories) {
+      // Units from both players fight first
+      int units = Math.min(factory.unitsReadyToFight[0], factory.unitsReadyToFight[1]);
+      factory.unitsReadyToFight[0] -= units;
+      factory.unitsReadyToFight[1] -= units;
+
+      // Remaining units fight on the factory
+      for (AGPlayer player : solution.players) {
+        if (factory.owner == player.owner) { // Allied
+          factory.units += factory.unitsReadyToFight[player.owner.id];
+        } else { // Opponent
+          if (factory.unitsReadyToFight[player.owner.id] > factory.units) {
+            factory.owner = player.owner;
+            factory.units = factory.unitsReadyToFight[player.owner.id] - factory.units;
+          } else {
+            factory.units -= factory.unitsReadyToFight[player.owner.id];
+          }
+        }
+      }
+    }
+  }
+
+  private void createFactoryUnits() {
+    for (Factory factory : GameState.factories) {
+      if (!factory.isNeutral()) {
+        factory.units += factory.getCurrentProductionRate();
+      }
+    }
+  }
+
+  private void moveEntities() {
     for (Troop troop : troops) {
       troop.move();
     }
     for (Bomb bomb : bombs) {
       bomb.move();
     }
+  }
 
-    // ---
-    // Decrease disabled countdown
-    // ---
+  private void decreaseFactoriesDisableCoutdown() {
     for (Factory factory : GameState.factories) {
       if (factory.disabled > 0) {
         factory.disabled--;
       }
     }
+  }
 
-    // ---
-    // Execute orders
-    // ---
+  private void executeOrders(AGSolution solution, int turnIndex) {
     for (AGPlayer player : solution.players) {
-      TurnAction tAction = player.turnActions.get(turnIndex);
+      TurnAction tAction = player.turnActions[turnIndex];
       // Send bombs
       for (BombAction bombAction : tAction.bombActions) {
         int distance = bombAction.src.getDistanceTo(bombAction.dst);
@@ -105,95 +213,6 @@ public class Simulation {
         if (incAction.src.units >= COST_INCREASE_PRODUCTION && incAction.src.productionRate < MAX_PRODUCTION_RATE) {
           incAction.src.productionRate++;
           incAction.src.units -= COST_INCREASE_PRODUCTION;
-        }
-      }
-    }
-
-    // ---
-    // Create new units
-    // ---
-    for (Factory factory : GameState.factories) {
-      if (!factory.isNeutral()) {
-        factory.units += factory.getCurrentProductionRate();
-      }
-    }
-
-    // ---
-    // Solve battles
-    // ---
-    for (Factory factory : GameState.factories) {
-      factory.unitsReadyToFight[0] = factory.unitsReadyToFight[1] = 0;
-    }
-
-    for (Iterator<Troop> it = troops.iterator(); it.hasNext();) {
-      Troop troop = it.next();
-      if (troop.remainingTurns <= 0) {
-        troop.destination.unitsReadyToFight[troop.owner.id] += troop.units;
-        it.remove();
-      }
-    }
-    for (Factory factory : GameState.factories) {
-      // Units from both players fight first
-      int units = Math.min(factory.unitsReadyToFight[0], factory.unitsReadyToFight[1]);
-      factory.unitsReadyToFight[0] -= units;
-      factory.unitsReadyToFight[1] -= units;
-
-      // Remaining units fight on the factory
-      for (AGPlayer player : solution.players) {
-        if (factory.owner == player.owner) { // Allied
-          factory.units += factory.unitsReadyToFight[player.owner.id];
-        } else { // Opponent
-          if (factory.unitsReadyToFight[player.owner.id] > factory.units) {
-            factory.owner = player.owner;
-            factory.units = factory.unitsReadyToFight[player.owner.id] - factory.units;
-          } else {
-            factory.units -= factory.unitsReadyToFight[player.owner.id];
-          }
-        }
-      }
-    }
-
-    // ---
-    // Solve bombs
-    // ---
-    for (Iterator<Bomb> it = bombs.iterator(); it.hasNext();) {
-      Bomb bomb = it.next();
-      if (bomb.remainingTurns <= 0) {
-        bomb.explode();
-        it.remove();
-      }
-    }
-
-    // ---
-    // Update score
-    // ---
-    for (AGPlayer player : solution.players) {
-      player.score = 0;
-    }
-    for (Factory factory : GameState.factories) {
-      if (factory.owner != null) {
-        solution.players.get(factory.owner.id).score += factory.units;
-      }
-    }
-    for (Troop troop : troops) {
-      if (troop.owner != null) {
-        solution.players.get(troop.owner.id).score += troop.units;
-      }
-    }
-
-    // ---
-    // Check end conditions
-    // ---
-    for (AGPlayer player : solution.players) {
-      if (player.score == 0) {
-        int production = 0;
-        for (Factory factory : GameState.factories) {
-          if (factory.owner == player.owner) {
-            production += factory.productionRate;
-          }
-        }
-        if (production == 0) {
-          solution.energy = -1_000_000; // dead
         }
       }
     }

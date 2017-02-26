@@ -160,7 +160,15 @@ public class GameState {
   }
   
   public void restoreState() {
-    throw new RuntimeException("Not implemented yet");
+    for (Factory factory : factories) {
+      factory.restore();
+    }
+    for (Troop troop : troops) {
+      troop.restore();
+    }
+    for (Bomb bomb : bombs) {
+      bomb.restore();
+    }
   }
   public Factory[] getFactories() {
     return factories;

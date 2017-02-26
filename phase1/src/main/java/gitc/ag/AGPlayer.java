@@ -8,16 +8,23 @@ import gitc.simulation.actions.MoveAction;
 
 public class AGPlayer {
   public final Owner owner;
-  public List<TurnAction> turnActions = new ArrayList<>();
+  public TurnAction[] turnActions = new TurnAction[AGSolution.DEPTH];
   public int remainingBombs = 2;
-  public int score;
+  
+  // part of scoring
+  public int units;
+  public int production;
+  public boolean dead;
   
   public AGPlayer(Owner owner) {
     this.owner = owner;
+    for (int i=0;i<AGSolution.DEPTH;i++) {
+      turnActions[i] = new TurnAction();
+    }
   }
   
   public void addMoveAction(MoveAction action, int turn) {
-    TurnAction tAction = turnActions.get(turn);
+    TurnAction tAction = turnActions[turn];
     tAction.moveActions.add(action);
   }
 }

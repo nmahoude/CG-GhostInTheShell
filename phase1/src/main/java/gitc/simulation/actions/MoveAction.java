@@ -13,4 +13,8 @@ public class MoveAction {
     this.dst = dst;
     this.units = units;
   }
+
+  public String output() {
+    return "MOVE "+src.id+" "+dst.id+" "+units;
+  }
 }

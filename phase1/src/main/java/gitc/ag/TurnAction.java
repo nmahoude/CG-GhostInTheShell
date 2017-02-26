@@ -11,4 +11,10 @@ public class TurnAction {
   public List<BombAction> bombActions= new ArrayList<>();
   public List<MoveAction> moveActions = new ArrayList<>();
   public List<UpgradeAction> upgradeActions = new ArrayList<>();
+  
+  public void clear() {
+    bombActions.clear();
+    moveActions.clear();
+    upgradeActions.clear();
+  }
 }

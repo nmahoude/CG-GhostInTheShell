@@ -4,12 +4,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import gitc.GameState;
+import gitc.simulation.actions.MoveAction;
 
 public class AGSolution {
-  public double energy = 0;
+  public static final int DEPTH = 30;
 
-  
+  public double energy = 0;
   public List<AGPlayer> players = new ArrayList<>();
+
+
   public AGSolution() {
     players.add(new AGPlayer(GameState.me));
     players.add(new AGPlayer(GameState.opp));
@@ -40,7 +43,13 @@ public class AGSolution {
   }
 
   public String output() {
-    throw new RuntimeException("Method not implemented");
+    String output = "";
+    TurnAction tAction = players.get(0).turnActions[0];
+    for (MoveAction action  :tAction.moveActions) {
+      output += action.output()+";";
+    }
+    output+="MSG from AG";
+    return output;
   }
 
 }

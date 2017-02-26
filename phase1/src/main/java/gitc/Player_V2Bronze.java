@@ -1,15 +1,11 @@
 package gitc;
 
-import java.util.Random;
 import java.util.Scanner;
 
 import gitc.ag.AG;
 import gitc.ag.AGParameters;
-import gitc.ag.AGSolution;
 import gitc.entities.Factory;
 import gitc.simulation.Simulation;
-import gitc.simulation.actions.BombAction;
-import gitc.simulation.actions.MoveAction;
 
 /**
  * seed pour petit terrain : 813958030
@@ -18,7 +14,7 @@ import gitc.simulation.actions.MoveAction;
  * @author nmahoude
  *
  */
-public class Player {
+public class Player_V2Bronze {
   private static Scanner in;
   private static int turn = 0;
   public static AG ag;
@@ -54,9 +50,6 @@ public class Player {
       /*
        * First iteration : find the best closest factory
        */
-
-      AGSolution ag = new AGSolution(); // no actions
-
       String bestOutput ="WAIT";
       double bestScore = 0;
       // ATTACK
@@ -73,12 +66,10 @@ public class Player {
                 int neededCyborgs = oppUnitsEvaluation - myUnitsEvaluation+1;
                 int remainingCyborgs = myFactory.units - neededCyborgs;
                 if (neededCyborgs > 0 && remainingCyborgs > myFactory.unitsInTransit[1]) {
-                  double score = 5*oppFactory.productionRate / distance; 
+                  double score = 5*(oppFactory.productionRate+0.1) / distance; 
                   if (score > bestScore) {
                     bestScore = score;
                     bestOutput = "MOVE "+myFactory.id+" "+oppFactory.id+ " "+neededCyborgs;
-                    ag.players.get(0).turnActions[0].clear();
-                    ag.players.get(0).turnActions[0].moveActions.add(new MoveAction(myFactory, oppFactory, neededCyborgs));
                   }
                 }
               }
@@ -96,12 +87,10 @@ public class Player {
               double score = neutralFactory.productionRate * neutralFactory.productionRate / distance;
              // System.err.println("Score :"+score+ " bc: "+factory.production+" / "+link.distance);
               int neededCyborgs = neutralFactory.units + 1 - neutralFactory.unitsInTransit[0] + neutralFactory.unitsInTransit[1];
-              if (neededCyborgs < myFactory.units) {
+              if (neededCyborgs > 0 && neededCyborgs < myFactory.units) {
                   if (score > bestScore) {
                   bestScore = score;
                   bestOutput = "MOVE "+myFactory.id+" "+factory.id+ " "+neededCyborgs;
-                  ag.players.get(0).turnActions[0].clear();
-                  ag.players.get(0).turnActions[0].moveActions.add(new MoveAction(myFactory, neutralFactory, neededCyborgs));
                 }
               }
             }
@@ -133,46 +122,9 @@ public class Player {
         if (toBomb != null && from != null) {
           bestOutput+="; BOMB "+from.id+" "+toBomb.id;
           GameState.me.bombsLeft--;
-          ag.players.get(0).turnActions[0].bombActions.add(new BombAction(from, toBomb));
         }
       }
       
-      AGSolution agNoMoves = new AGSolution(); // no actions
-      simulation.simulate(agNoMoves);
-      simulation.simulate(ag);
-
-      AGSolution bestAG = ag;
-
-      System.err.println("ag energy (no move): "+agNoMoves.energy);
-      System.err.println("ag energy (my move): "+ag.energy);
-      
-      Random random = new Random();
-      long startSim = System.currentTimeMillis();
-      for (int i=0;i<300;i++) {
-        AGSolution agRand = new AGSolution() ;
-        for (int turn=0;turn < 10;turn++) {
-          for (Factory factory : GameState.factories) {
-            if (factory.isMe() && factory.units > 0) {
-              int otherFactory;
-              do {
-                otherFactory = random.nextInt(GameState.factories.length);
-              } while(otherFactory == factory.id);
-              if (!GameState.factories[otherFactory].isMe()) {
-                int units = random.nextInt(3*factory.units);
-                agRand.players.get(0).turnActions[turn].moveActions.add(new MoveAction(factory, GameState.factories[otherFactory], units));
-              }
-            }
-          }
-        }
-        simulation.simulate(agRand);
-        if (bestAG == null || agRand.energy > bestAG.energy) {
-          bestAG = agRand;
-        }
-      }
-      long endSim = System.currentTimeMillis();
-      System.err.println("Simulation took : "+(endSim-startSim)+" ms");
-      
-      bestOutput = bestAG.output();
       System.out.println(bestOutput);
 
       cleanUp();

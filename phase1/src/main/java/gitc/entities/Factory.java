@@ -83,7 +83,7 @@ public class Factory extends Entity {
   }
 
   public int getCurrentProductionRate() {
-    return productionRate;
+    return (disabled == 0) ? this.productionRate : 0;
   }
 
 }
