@@ -7,18 +7,16 @@ import java.util.Scanner;
 import gitc.entities.Bomb;
 import gitc.entities.EntityType;
 import gitc.entities.Factory;
-import gitc.entities.Link;
 import gitc.entities.Troop;
 
 public class GameState {
-  private static final boolean TDD_OUPUT = true;
+  private static final boolean TDD_OUPUT = false;
   List<String> inputSetupBackup = new ArrayList<>();
   List<String> inputBackup = new ArrayList<>();
 
   public int factoryCount;
   public int bombs[] = new int[2];
   Factory[] factories;
-  Link[] links;
   Troop[] troops;
   
   public int cyborgs[] = new int[2];
@@ -31,10 +29,9 @@ public class GameState {
     int linkCount = in.nextInt(); // the number of links between factories
 
     factories = new Factory[factoryCount];
-    for (int i=0;i<factoryCount;i++) {
-      factories[i] = new Factory(i, factoryCount);
+    for (int id=0;id<factoryCount;id++) {
+      factories[id] = new Factory(id, factoryCount);
     }
-    links = new Link[2 * linkCount];
     
     if (TDD_OUPUT) {
       inputSetupBackup.add("setup("+factoryCount+","+linkCount+");");
@@ -44,10 +41,9 @@ public class GameState {
         int factory1 = in.nextInt();
         int factory2 = in.nextInt();
         int distance = in.nextInt();
-        links[2*i+0] = new Link(factories[factory1], factories[factory2], distance);
+        factories[factory1].setupDistance(factories[factory2], distance);
+        factories[factory2].setupDistance(factories[factory1], distance);
         
-        links[2*i+1] = new Link(factories[factory2], factories[factory1], distance);
-
         if (TDD_OUPUT) {
           inputSetupBackup.add("addLinks("+factory1+","+factory2+","+distance+");");
         }
@@ -76,7 +72,7 @@ public class GameState {
           factory.read(in);
           if (factory.player != 0) {
             production[getPlayerIndex(factory.player)]+=factory.production;
-            cyborgs[getPlayerIndex(factory.player)]+=factory.cyborgs;
+            cyborgs[getPlayerIndex(factory.player)]+=factory.units;
           }
           if (TDD_OUPUT) {
             inputBackup.add(factories[entityId].tddOutput());
@@ -85,8 +81,8 @@ public class GameState {
           int troopId = i-factoryCount;
           Troop troop = troops[troopId];
           troop.read(in);
-          troop.affectToLink(factories);
-          cyborgs[getPlayerIndex(troop.player)]+=troop.cyborgs;
+          troop.affectToFactory(factories);
+          cyborgs[getPlayerIndex(troop.player)]+=troop.units;
           
           if (TDD_OUPUT) {
             inputBackup.add(troops[troopId].tddOutput());
@@ -96,6 +92,11 @@ public class GameState {
           bomb.read(in);
           if (bomb.toFactory != -1) {
             factories[bomb.toFactory].willBeBombed = true;
+          } else {
+            Factory myOnlyFactory = onlyOneFactoryOwned();
+            if (myOnlyFactory != null) {
+              myOnlyFactory.willBeBombed = true;
+            }
           }
         }
     }
@@ -109,6 +110,20 @@ public class GameState {
     backupState();
   }
 
+  private Factory onlyOneFactoryOwned() {
+    Factory myOnlyFactory = null;
+    for (Factory factory : factories) {
+      if (factory.isMe()) {
+        if (myOnlyFactory != null) {
+          return null; // at least 2
+        } else {
+          myOnlyFactory = factory;
+        }
+      }
+    }
+    return myOnlyFactory;
+  }
+
   private int getPlayerIndex(int player) {
     return player == 1 ? 0 : 1;
   }
@@ -117,8 +132,8 @@ public class GameState {
     cyborgsTotal = 0;
     cyborgs[0] = cyborgs[1] = 0;
     production[0] = production[1] = 0;
-    for (Link link : links) {
-      link.clear();
+    for (Factory factory : factories) {
+      factory.clear();
     }
   }
 
@@ -142,10 +157,6 @@ public class GameState {
   }
   public Factory[] getFactories() {
     return factories;
-  }
-
-  public Link[] getLinks() {
-    return links;
   }
 
   public Troop[] getTroops() {

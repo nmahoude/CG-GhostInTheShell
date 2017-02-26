@@ -5,7 +5,7 @@ import java.util.Scanner;
 public class Troop extends Entity {
   public int fromFactoryIndex;
   public int toFactoryIndex;
-  public int cyborgs;
+  public int units;
   public int turnsToTarget;
   
   public Troop(int id) {
@@ -15,7 +15,7 @@ public class Troop extends Entity {
     player = in.nextInt();
     fromFactoryIndex = in.nextInt();
     toFactoryIndex = in.nextInt();
-    cyborgs = in.nextInt();
+    units = in.nextInt();
     turnsToTarget = in.nextInt();
   }
   public String tddOutput() {
@@ -24,17 +24,10 @@ public class Troop extends Entity {
               +player+","
               +fromFactoryIndex+","
               +toFactoryIndex+","
-              +cyborgs+","
+              +units+","
               +turnsToTarget+");";
   }
-  public void affectToLink(Factory[] factories) {
-    Factory fromFactory = factories[fromFactoryIndex];
-    Factory toFactory = factories[toFactoryIndex];
-    
-    toFactory.incommingCyborgs += cyborgs;
-    
-    Link link = fromFactory.getLinkToFactory(toFactoryIndex);
-    link.addTroop(this);
+  public void affectToFactory(Factory[] factories) {
+    factories[toFactoryIndex].addTroop(this);
   }
-
 }

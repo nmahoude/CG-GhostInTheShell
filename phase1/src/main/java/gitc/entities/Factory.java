@@ -1,43 +1,47 @@
 package gitc.entities;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class Factory extends Entity {
-  public int cyborgs;
+  public int units;
   public int production; // 0->3
-  public Link[] links;
+  public int[] distances; 
   public boolean willBeBombed;
-  public int incommingCyborgs;
+  public int disabled = 0;
+  public List<Troop> troops = new ArrayList<>();
+  public int[] unitsInTransit = { 0, 0 };
   
-  public Factory(int id, int linkCount) {
+  public Factory(int id, int factoriesCount) {
     super(id);
-    links = new Link[linkCount];
+    distances = new int[factoriesCount];
+    distances[id] = 0; // own distance
+  }
+  
+  public void setupDistance(Factory toFactory, int distance) {
+    distances[toFactory.id] = distance;
   }
   
   public void read(Scanner in) {
-    clear();
-    
     player = in.nextInt();
-    cyborgs = in.nextInt();
+    units = in.nextInt();
     production = in.nextInt();
     int unused1 = in.nextInt();
     int unused2 = in.nextInt();
   }
 
-  private void clear() {
+  public void clear() {
     willBeBombed = false;
-    incommingCyborgs = 0;
+    troops.clear();
+    unitsInTransit[0] = unitsInTransit[1] = 0;
   }
 
   public String tddOutput() {
     return "updateFactory("+id+","
                   +player+","
-                  +cyborgs+","
+                  +units+","
                   +production+");";
-  }
-
-  public Link getLinkToFactory(int toFactory) {
-    return links[toFactory];
   }
 
   public boolean isOpponent() {
@@ -48,6 +52,15 @@ public class Factory extends Entity {
   }
   public boolean isNeutral() {
     return player == 0;
+  }
+
+  public void addTroop(Troop troop) {
+    troops.add(troop);
+    unitsInTransit[troop.player == 1 ? 0 : 1] += troop.units;
+  }
+
+  public int getDistanceTo(Factory toFactory) {
+    return distances[toFactory.id];
   }
 
 }
