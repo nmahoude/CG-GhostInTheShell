@@ -3,30 +3,38 @@ package gitc.entities;
 import java.util.Scanner;
 
 public class Troop extends Entity {
-  int fromFactory;
-  int toFactory;
-  int cyborgsCount;
-  int turnsToTarget;
+  public int fromFactoryIndex;
+  public int toFactoryIndex;
+  public int cyborgs;
+  public int turnsToTarget;
   
   public Troop(int id) {
     super(id);
   }
   public void read(Scanner in) {
-
     player = in.nextInt();
-    fromFactory = in.nextInt();
-    toFactory = in.nextInt();
-    cyborgsCount = in.nextInt();
+    fromFactoryIndex = in.nextInt();
+    toFactoryIndex = in.nextInt();
+    cyborgs = in.nextInt();
     turnsToTarget = in.nextInt();
   }
   public String tddOutput() {
       return "updateTroop("
               +id+","
               +player+","
-              +fromFactory+","
-              +toFactory+","
-              +cyborgsCount+","
+              +fromFactoryIndex+","
+              +toFactoryIndex+","
+              +cyborgs+","
               +turnsToTarget+");";
+  }
+  public void affectToLink(Factory[] factories) {
+    Factory fromFactory = factories[fromFactoryIndex];
+    Factory toFactory = factories[toFactoryIndex];
+    
+    toFactory.incommingCyborgs += cyborgs;
+    
+    Link link = fromFactory.getLinkToFactory(toFactoryIndex);
+    link.addTroop(this);
   }
 
 }
