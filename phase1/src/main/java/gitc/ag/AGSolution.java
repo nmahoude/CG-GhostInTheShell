@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import gitc.GameState;
+import gitc.entities.Factory;
 import gitc.simulation.actions.Action;
-import gitc.simulation.actions.MoveAction;
 
 public class AGSolution {
   public static final int DEPTH = 30;
@@ -56,6 +56,37 @@ public class AGSolution {
     }
     output+="MSG from AG";
     return output;
+  }
+
+  public void calculateHeuristic() {
+    AGPlayer me = players.get(0);
+    AGPlayer opp = players.get(1);
+    if (me.dead) {
+      energy = -1_000_000;
+    } else {
+      // pseudo calcul of distance between my factories
+      double distance = getPseudoDistanceBetweenFactories();
+      
+      energy = 
+          (1.0*me.units / (me.units+opp.units)) 
+          + (10.0*(1.0*me.production / (me.production+opp.production)))
+//          - (0.1 * distance)
+          ; 
+    }
+  }
+
+  private double getPseudoDistanceBetweenFactories() {
+    double distance = 0;
+    Factory previousFactory = null;
+    for (Factory factory : GameState.factories) {
+      if (factory.isMe()) {
+        if (previousFactory != null) {
+          distance = 1.0*factory.getDistanceTo(previousFactory) / (factory.productionRate+1);
+        }
+        previousFactory = factory;
+      }
+    }
+    return distance;
   }
 
 }

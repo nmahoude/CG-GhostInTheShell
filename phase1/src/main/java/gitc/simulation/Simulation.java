@@ -38,18 +38,10 @@ public class Simulation {
     bombs.addAll(state.getBombs());
     
     for (int turn = 0; turn < AGSolution.DEPTH; turn++) {
-      simulate(solution, 0);
+      simulate(solution, turn);
     }
     
-    AGPlayer me = solution.players.get(0);
-    AGPlayer opp = solution.players.get(1);
-    if (me.dead) {
-      solution.energy = -1_000_000;
-    } else {
-      solution.energy = 
-          (1.0*me.units / (me.units+opp.units)) + 
-          (2.0*(1.0*me.production / (me.production+opp.production))); 
-    }
+    solution.calculateHeuristic();
     
     state.restoreState();
   }

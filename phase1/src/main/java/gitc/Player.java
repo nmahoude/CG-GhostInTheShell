@@ -68,30 +68,42 @@ public class Player {
       while (System.nanoTime() - start < 45_000_000) {
         simulations++;
         AGSolution agRand = new AGSolution();
-        for (int turn = 0; turn < 1; turn++) {
+        for (int turnIndex = 0; turnIndex < 10; turnIndex++) {
+          
           for (Factory factory : myFactoriesSupplier) {
-            if (oppFactoriesUnderAttack.size() > 0 && random.nextInt(30) == 0) {
-              int attackFactoryIndex = random.nextInt(oppFactoriesUnderAttack.size());
-              Factory attackFactory = oppFactoriesUnderAttack.get(attackFactoryIndex);
-              if (gameState.willBombHitFactory(attackFactory) == -1) {
-                agRand.players.get(0).turnActions[turn].actions.add(new BombAction(factory, attackFactory));
-              }
-            }
-            if (factory.units > 0) {
-              if (myFactoriesUnderAttack.size() > 0 && random.nextInt(2) == 0) {
-                // help
-                int helpFactoryIndex = random.nextInt(myFactoriesUnderAttack.size());
-                Factory helpFactory = myFactoriesUnderAttack.get(helpFactoryIndex);
-                int units = factory.units / 2;
-                agRand.players.get(0).turnActions[turn].actions.add(new MoveAction(factory, helpFactory, units));
-              } else if (oppFactoriesUnderAttack.size() > 0 && random.nextInt(2) == 0) {
-                // attack
+            int attemptedMovePerFactory = turn == 0 ? 4 : 2;
+
+            for (int attemptedAction=0;attemptedAction<attemptedMovePerFactory;attemptedAction++) {
+              if (oppFactoriesUnderAttack.size() > 0 && random.nextInt(30) == 0) { 
+                // bomb
                 int attackFactoryIndex = random.nextInt(oppFactoriesUnderAttack.size());
                 Factory attackFactory = oppFactoriesUnderAttack.get(attackFactoryIndex);
-                int units = factory.units / 2;
-                agRand.players.get(0).turnActions[turn].actions.add(new MoveAction(factory, attackFactory, units));
-              } else {
-                // nothing
+                if (!attackFactory.isNeutral() && gameState.willBombHitFactory(attackFactory) == -1 && !attackFactory.isUnderAttackBy(GameState.me)) {
+                  agRand.players.get(0).turnActions[turnIndex].actions.add(new BombAction(factory, attackFactory));
+                }
+              }
+              if (factory.units > 0) {
+                if (myFactoriesUnderAttack.size() > 0) {
+                  // help based on distance
+                  int helpFactoryIndex = random.nextInt(myFactoriesUnderAttack.size());
+                  Factory helpFactory = myFactoriesUnderAttack.get(helpFactoryIndex);
+                  if (random.nextInt(2) == 0) {
+                    //                  int units = factory.units / 2; // TODO WTF ?
+                    int units = random.nextInt(factory.units); // TODO WTF ?
+                    agRand.players.get(0).turnActions[turnIndex].actions.add(new MoveAction(factory, helpFactory, units));
+                  }
+                } else if (oppFactoriesUnderAttack.size() > 0) {
+                  // attack
+                  int attackFactoryIndex = random.nextInt(oppFactoriesUnderAttack.size());
+                  Factory attackFactory = oppFactoriesUnderAttack.get(attackFactoryIndex);
+                  if (random.nextInt(1+factory.getDistanceTo(attackFactory) * 2) == 0) {
+  //                  int units = factory.units / 2; // TODO WTF ?
+                    int units = random.nextInt(factory.units); // TODO WTF ?
+                    agRand.players.get(0).turnActions[turnIndex].actions.add(new MoveAction(factory, attackFactory, units));
+                  }
+                } else {
+                  // nothing
+                }
               }
             }
           }
