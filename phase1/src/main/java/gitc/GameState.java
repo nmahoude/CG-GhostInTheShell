@@ -130,7 +130,7 @@ public class GameState {
   private void updateFactoryInfluence() {
     // System.err.println("Factory influences : ");
     for (Factory factory : factories) {
-      factory.calculateInfluence();
+      factory.calculateInfluence(troops);
        // System.err.println("   "+factory.id+" = "+ factory.influence);
     }
   }

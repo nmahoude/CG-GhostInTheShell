@@ -1,5 +1,6 @@
 package gitc.entities;
 
+import java.util.List;
 import java.util.Scanner;
 
 import gitc.GameState;
@@ -50,26 +51,25 @@ public class Factory extends Entity {
     distances[toFactory.id] = distance;
   }
   
-  public double calculateInfluence() {
-    double currentUnits;
-    if (owner == GameState.me) {
-      currentUnits= units + unitsInTransit[0]-unitsInTransit[1];
-    } else if (owner == GameState.opp) {
-      currentUnits = unitsInTransit[0]-(units+unitsInTransit[1]);
-    } else {
-      currentUnits = unitsInTransit[0]-unitsInTransit[1];
-    }
-    
-    double totalInfluence = 0;
-    for (Factory factory : GameState.factories) {
-      if (factory != this && !factory.isNeutral()) {
-        double influence = 1.0 * factory.units * (factory.owner == GameState.me ? 1 : -1) / factory.getDistanceTo(this);
-        
-        totalInfluence += influence;
+  public double calculateInfluence(List<Troop> troops) {
+    // current units
+    double currentUnitsInfluence = units * (this.owner == GameState.me ? 1.0 : -1.0);
+
+    // incomming troops
+    for (Troop troop : troops) {
+      if (troop.destination == this) {
+        currentUnitsInfluence += (troop.owner == GameState.me ? 1.0 : -1.0) * troop.units / troop.remainingTurns;
       }
     }
     
-    this.influence = currentUnits + totalInfluence;
+    // neighbors factory
+    for (Factory factory : GameState.factories) {
+      if (factory != this && !factory.isNeutral()) {
+        currentUnitsInfluence += 0.25 * factory.units * (factory.owner == GameState.me ? 1.0 : -1.0) / factory.getDistanceTo(this);
+      }
+    }
+    
+    this.influence = currentUnitsInfluence;
     return influence;
   }
   

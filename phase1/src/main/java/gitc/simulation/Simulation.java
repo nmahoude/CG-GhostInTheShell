@@ -22,8 +22,8 @@ public class Simulation {
   private static final int COST_INCREASE_PRODUCTION = 10;
   private static final int MAX_PRODUCTION_RATE = 3;
   private GameState state;
-  List<Bomb> bombs = new ArrayList<>();
-  List<Troop> troops = new ArrayList<>();
+  public List<Bomb> bombs = new ArrayList<>();
+  public List<Troop> troops = new ArrayList<>();
   List<Bomb> newBombs = new ArrayList<>();
   List<Troop> newTroops = new ArrayList<>();
 

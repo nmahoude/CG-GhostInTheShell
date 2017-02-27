@@ -57,7 +57,7 @@ public class AGSolution {
         output += action.output()+";";
       }
     }
-    output+=message;
+    output+="MSG "+message;
     return output;
   }
 
@@ -73,7 +73,7 @@ public class AGSolution {
       int troopsInTransit = simulation.getTroopsInTransit(GameState.me);
       
       // update factories influence
-      double influence = updateFactoriesInfluence();
+      double influence = updateFactoriesInfluence(simulation);
       
       energy = 0
           + (1.0*me.units / (me.units+opp.units)) 
@@ -82,14 +82,14 @@ public class AGSolution {
 //          - (0.1 * distance)
           ; 
       
-      message = "inf : "+influence;
+      message = " inf="+influence;
     }
   }
 
-  private double updateFactoriesInfluence() {
+  private double updateFactoriesInfluence(Simulation simulation) {
     double total = 0;
     for (Factory factory : GameState.factories) {
-      total += factory.calculateInfluence();
+      total += factory.calculateInfluence(simulation.troops);
     }
     return total;
   }
