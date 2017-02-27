@@ -5,13 +5,16 @@ import java.util.List;
 
 import gitc.GameState;
 import gitc.entities.Factory;
+import gitc.simulation.Simulation;
 import gitc.simulation.actions.Action;
 
 public class AGSolution {
-  public static final int DEPTH = 30;
+  public static final int DEPTH = 10;
 
   public double energy = 0;
   public List<AGPlayer> players = new ArrayList<>();
+
+  private String message;
 
 
   public AGSolution() {
@@ -54,25 +57,41 @@ public class AGSolution {
         output += action.output()+";";
       }
     }
-    output+="MSG from AG";
+    output+=message;
     return output;
   }
 
-  public void calculateHeuristic() {
+  public void calculateHeuristic(Simulation simulation) {
     AGPlayer me = players.get(0);
     AGPlayer opp = players.get(1);
     if (me.dead) {
       energy = -1_000_000;
     } else {
       // pseudo calcul of distance between my factories
-      double distance = getPseudoDistanceBetweenFactories();
+      // double distance = getPseudoDistanceBetweenFactories();
       
-      energy = 
-          (1.0*me.units / (me.units+opp.units)) 
-          + (10.0*(1.0*me.production / (me.production+opp.production)))
+      int troopsInTransit = simulation.getTroopsInTransit(GameState.me);
+      
+      // update factories influence
+      double influence = updateFactoriesInfluence();
+      
+      energy = 0
+          + (1.0*me.units / (me.units+opp.units)) 
+          + (15.0*(1.0*me.production / (me.production+opp.production)))
+          + 0.1*influence
 //          - (0.1 * distance)
           ; 
+      
+      message = "inf : "+influence;
     }
+  }
+
+  private double updateFactoriesInfluence() {
+    double total = 0;
+    for (Factory factory : GameState.factories) {
+      total += factory.calculateInfluence();
+    }
+    return total;
   }
 
   private double getPseudoDistanceBetweenFactories() {
@@ -88,5 +107,4 @@ public class AGSolution {
     }
     return distance;
   }
-
 }

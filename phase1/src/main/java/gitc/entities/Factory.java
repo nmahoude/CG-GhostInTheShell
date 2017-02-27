@@ -1,26 +1,24 @@
 package gitc.entities;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Scanner;
 
 import gitc.GameState;
 
 public class Factory extends Entity {
   public int[] distances; 
-  public List<Troop> troops = new ArrayList<>();
-  
   public int[] unitsReadyToFight  = { 0, 0 };
 
   public int units;
   public int productionRate; // 0->3
   public int disabled = 0;
   public int[] unitsInTransit = { 0, 0 };
-
+  public double influence;
+  
   public int b_units;
   public int b_productionRate; // 0->3
   public int b_disabled = 0;
   public int[] b_unitsInTransit = { 0, 0 };
+  public double b_influence;
 
 // backup
   public void backup() {
@@ -30,6 +28,7 @@ public class Factory extends Entity {
     b_disabled = disabled;
     b_unitsInTransit[0] = unitsInTransit[0];
     b_unitsInTransit[1] = unitsInTransit[1];
+    b_influence = influence;
   }
   public void restore() {
     super.restore();
@@ -38,6 +37,7 @@ public class Factory extends Entity {
     disabled = b_disabled;
     unitsInTransit[0] = b_unitsInTransit[0];
     unitsInTransit[1] = b_unitsInTransit[1];
+    influence = b_influence;
   }
   
   public Factory(int id, int factoriesCount) {
@@ -50,6 +50,29 @@ public class Factory extends Entity {
     distances[toFactory.id] = distance;
   }
   
+  public double calculateInfluence() {
+    double currentUnits;
+    if (owner == GameState.me) {
+      currentUnits= units + unitsInTransit[0]-unitsInTransit[1];
+    } else if (owner == GameState.opp) {
+      currentUnits = unitsInTransit[0]-(units+unitsInTransit[1]);
+    } else {
+      currentUnits = unitsInTransit[0]-unitsInTransit[1];
+    }
+    
+    double totalInfluence = 0;
+    for (Factory factory : GameState.factories) {
+      if (factory != this && !factory.isNeutral()) {
+        double influence = 1.0 * factory.units * (factory.owner == GameState.me ? 1 : -1) / factory.getDistanceTo(this);
+        
+        totalInfluence += influence;
+      }
+    }
+    
+    this.influence = currentUnits + totalInfluence;
+    return influence;
+  }
+  
   @SuppressWarnings("unused")
   public void read(Scanner in) {
     readPlayer(in.nextInt());
@@ -60,7 +83,6 @@ public class Factory extends Entity {
   }
 
   public void clear() {
-    troops.clear();
     unitsInTransit[0] = unitsInTransit[1] = 0;
   }
 
@@ -72,7 +94,6 @@ public class Factory extends Entity {
   }
 
   public void addTroop(Troop troop) {
-    troops.add(troop);
     unitsInTransit[troop.owner.id] += troop.units;
   }
 

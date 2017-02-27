@@ -10,6 +10,7 @@ import gitc.ag.AGSolution;
 import gitc.ag.TurnAction;
 import gitc.entities.Bomb;
 import gitc.entities.Factory;
+import gitc.entities.Owner;
 import gitc.entities.Troop;
 import gitc.simulation.actions.Action;
 import gitc.simulation.actions.ActionType;
@@ -41,7 +42,7 @@ public class Simulation {
       simulate(solution, turn);
     }
     
-    solution.calculateHeuristic();
+    solution.calculateHeuristic(this);
     
     state.restoreState();
   }
@@ -217,5 +218,15 @@ public class Simulation {
         }
       }
     }
+  }
+
+  public int getTroopsInTransit(Owner owner) {
+    int inTransit = 0;
+    for (Troop troop : troops) {
+      if (troop.owner == owner) {
+        inTransit+= troop.units;
+      }
+    }
+    return inTransit;
   }
 }

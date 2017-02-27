@@ -1,7 +1,10 @@
 package gitc;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -10,14 +13,20 @@ import gitc.ag.AGParameters;
 import gitc.ag.AGSolution;
 import gitc.entities.Factory;
 import gitc.simulation.Simulation;
+import gitc.simulation.actions.Action;
 import gitc.simulation.actions.BombAction;
 import gitc.simulation.actions.MoveAction;
+import gitc.simulation.actions.UpgradeAction;
 
 /**
  * seed pour petit terrain : 813958030 (1 seul resource > 0 !) 203791280
  * 
  * @author nmahoude
  *
+ * TODO : nombre d'units en transit
+ * TODO : nombre d'units static
+ * 
+ * TODO : Influence
  */
 public class Player {
   private static Scanner in;
@@ -33,27 +42,18 @@ public class Player {
     in = new Scanner(System.in);
 
     setupAG();
-    // TODO read setup
     gameState.readSetup(in);
     while (true) {
-      // TODO read gameTurn informations
       gameState.read(in);
       long start = System.nanoTime();
 
       // find best action possible
       long timeLimit = start + turn != 0 ? 85_000_000L : 800_000_000L;
-      // AGSolution solution = ag.evolution(timeLimit);
-
       // Some debug information
       // System.err.println("My forces : ["+gameState.cyborgs[0] + "/
       // prod:"+gameState.production[0]+"]" );
       // System.err.println("Op forces : ["+gameState.cyborgs[1] + "/
       // prod:"+gameState.production[1]+"]" );
-
-      List<Factory> myFactoriesUnderAttack = new ArrayList<>(10);
-      List<Factory> oppFactoriesUnderAttack = new ArrayList<>(10);
-      List<Factory> myFactoriesSupplier = new ArrayList<>(10);
-      getFactoriesStatus(myFactoriesUnderAttack, oppFactoriesUnderAttack, myFactoriesSupplier);
 
       AGSolution agNoMoves = new AGSolution(); // no actions
       simulation.simulate(agNoMoves);
@@ -61,49 +61,51 @@ public class Player {
 
       AGSolution bestAG = null;
 
-      // try some random moves
       Random random = new Random();
       long startSim = System.currentTimeMillis();
+      // Build possible actions
+      Map<Integer, List<Action> > possibleActions = new HashMap<>();
+      for (Factory factory : GameState.factories) {
+        List<Action> actions = new ArrayList<>();
+        possibleActions.put(factory.id, actions);
+        
+        if (factory.isMe()) {
+          // upgrade
+          if (factory.units > 10) {
+            actions.add(new UpgradeAction(factory));
+          }
+          // move
+          if (factory.units > 0) {
+            for (Factory otherFactory : GameState.factories) {
+              if (otherFactory != factory && !otherFactory.isMe()) {
+                // add some possible move actions
+                actions.add(new MoveAction(factory, otherFactory, 1+random.nextInt(factory.units)));
+              }
+            }
+          }
+          // bomb
+          if (GameState.me.bombsLeft > 0) {
+            for (Factory otherFactory : GameState.factories) {
+              if (otherFactory.isOpponent()) {
+                actions.add(new BombAction(factory, otherFactory));
+              }
+            }
+          }
+        }
+      }
+
       int simulations = 0;
-      while (System.nanoTime() - start < 45_000_000) {
+      while (System.nanoTime() - start < 40_000_000) {
         simulations++;
         AGSolution agRand = new AGSolution();
-        for (int turnIndex = 0; turnIndex < 10; turnIndex++) {
-          
-          for (Factory factory : myFactoriesSupplier) {
-            int attemptedMovePerFactory = turn == 0 ? 4 : 2;
-
-            for (int attemptedAction=0;attemptedAction<attemptedMovePerFactory;attemptedAction++) {
-              if (oppFactoriesUnderAttack.size() > 0 && random.nextInt(30) == 0) { 
-                // bomb
-                int attackFactoryIndex = random.nextInt(oppFactoriesUnderAttack.size());
-                Factory attackFactory = oppFactoriesUnderAttack.get(attackFactoryIndex);
-                if (!attackFactory.isNeutral() && gameState.willBombHitFactory(attackFactory) == -1 && !attackFactory.isUnderAttackBy(GameState.me)) {
-                  agRand.players.get(0).turnActions[turnIndex].actions.add(new BombAction(factory, attackFactory));
-                }
-              }
-              if (factory.units > 0) {
-                if (myFactoriesUnderAttack.size() > 0) {
-                  // help based on distance
-                  int helpFactoryIndex = random.nextInt(myFactoriesUnderAttack.size());
-                  Factory helpFactory = myFactoriesUnderAttack.get(helpFactoryIndex);
-                  if (random.nextInt(2) == 0) {
-                    //                  int units = factory.units / 2; // TODO WTF ?
-                    int units = random.nextInt(factory.units); // TODO WTF ?
-                    agRand.players.get(0).turnActions[turnIndex].actions.add(new MoveAction(factory, helpFactory, units));
-                  }
-                } else if (oppFactoriesUnderAttack.size() > 0) {
-                  // attack
-                  int attackFactoryIndex = random.nextInt(oppFactoriesUnderAttack.size());
-                  Factory attackFactory = oppFactoriesUnderAttack.get(attackFactoryIndex);
-                  if (random.nextInt(1+factory.getDistanceTo(attackFactory) * 2) == 0) {
-  //                  int units = factory.units / 2; // TODO WTF ?
-                    int units = random.nextInt(factory.units); // TODO WTF ?
-                    agRand.players.get(0).turnActions[turnIndex].actions.add(new MoveAction(factory, attackFactory, units));
-                  }
-                } else {
-                  // nothing
-                }
+        for (Factory factory : GameState.factories) {
+          List<Action> actions = possibleActions.get(factory.id);
+          if (actions.size() > 0) {
+            int actionNumber = random.nextInt(actions.size());
+            Collections.shuffle(actions);
+            for (int i=0;i<actionNumber;i++) {
+              if (random.nextBoolean()) {
+                agRand.players.get(0).addAction(actions.get(i), 0);
               }
             }
           }

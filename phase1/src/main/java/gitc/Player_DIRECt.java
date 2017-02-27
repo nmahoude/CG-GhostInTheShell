@@ -16,7 +16,7 @@ import gitc.simulation.Simulation;
  * @author nmahoude
  *
  */
-public class Player_DIRECt {
+public class Player_DIRECT {
   private static Scanner in;
   private static int turn = 0;
   public static AG ag;
@@ -30,10 +30,8 @@ public class Player_DIRECt {
     in = new Scanner(System.in);
     
     setupAG();
-    // TODO read setup
     gameState.readSetup(in);
     while(true) {
-      // TODO read gameTurn informations
       gameState.read(in);
       long start = System.nanoTime();
 

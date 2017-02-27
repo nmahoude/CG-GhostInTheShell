@@ -25,10 +25,8 @@ public class Player_WAIT {
     in = new Scanner(System.in);
     
     setupAG();
-    // TODO read setup
     gameState.readSetup(in);
     while(true) {
-      // TODO read gameTurn informations
       gameState.read(in);
       long start = System.nanoTime();
 

@@ -2,7 +2,9 @@ package gitc;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 import gitc.entities.Bomb;
@@ -24,7 +26,7 @@ public class GameState {
   public static Factory[] factories;
   public static Factory unkownFactory = new Factory(0, 1);
   public List<Troop> troops = new ArrayList<>();
-  public List<Bomb> bombs = new ArrayList<>();
+  public Map<Integer, Bomb> bombs = new HashMap<>();
   
   public int cyborgs[] = new int[2];
   public int production[] = new int [2];
@@ -66,6 +68,8 @@ public class GameState {
     int troopCount = entityCount-factoryCount;
     troops.clear();
 
+    Map<Integer, Bomb> newBombs = new HashMap<>();
+
     for (int i = 0; i < entityCount; i++) {
         int entityId = in.nextInt();
         String entityType = in.next();
@@ -91,29 +95,51 @@ public class GameState {
             inputBackup.add(troop.tddOutput());
           }
         } else if (entityType.equals(EntityType.BOMB.name())){
-          Bomb bomb = new Bomb(0);
-          bomb.read(in);
-          bombs.add(bomb);
-          if (bomb.destination != unkownFactory) {
+          Bomb bomb = bombs.get(entityId);
+          if (bomb == null) {
+            bomb = new Bomb(entityId);
+            bomb.read(in);
+            if (bomb.destination != unkownFactory) {
+            } else {
+              getBombDestinationFromKnowledge(bomb);
+            }
           } else {
-            getBombDestinationFromKnowledge(bomb);
+            // only read, we already know the bomb
+            bomb.read(in);
           }
+          newBombs.put(entityId, bomb);
         }
     }
 
+    // replace bombs
+    bombs = newBombs;
+    
     cyborgsTotal = cyborgs[0] + cyborgs[1];
     
     if (TDD_OUPUT) {
       tddOuput();
     }
-    
+    preTurnUpdate();
     backupState();
+  }
+
+  private void preTurnUpdate() {
+    updateFactoryInfluence();
+  }
+
+  private void updateFactoryInfluence() {
+    // System.err.println("Factory influences : ");
+    for (Factory factory : factories) {
+      factory.calculateInfluence();
+       // System.err.println("   "+factory.id+" = "+ factory.influence);
+    }
   }
 
   private void getBombDestinationFromKnowledge(Bomb bomb) {
     Factory myOnlyFactory = onlyOneFactoryOwned();
     if (myOnlyFactory != null) {
       bomb.destination = myOnlyFactory;
+      bomb.remainingTurns = myOnlyFactory.getDistanceTo(bomb.source);
       System.err.println("I know where the bomb will hit ! id="+myOnlyFactory.id);
     } else {
       System.err.println("I don't know where the bomb will hit");
@@ -161,7 +187,7 @@ public class GameState {
     for (Troop troop : troops) {
       troop.backup();
     }
-    for (Bomb bomb : bombs) {
+    for (Bomb bomb : bombs.values()) {
       bomb.backup();
     }
   }
@@ -173,7 +199,7 @@ public class GameState {
     for (Troop troop : troops) {
       troop.restore();
     }
-    for (Bomb bomb : bombs) {
+    for (Bomb bomb : bombs.values()) {
       bomb.restore();
     }
   }
@@ -184,12 +210,12 @@ public class GameState {
   public List<Troop> getTroops() {
     return troops;
   }
-  public List<Bomb> getBombs() {
-    return bombs;
+  public Collection<Bomb> getBombs() {
+    return bombs.values();
   }
 
   public int willBombHitFactory(Factory attackFactory) {
-    for (Bomb bomb : bombs) {
+    for (Bomb bomb : bombs.values()) {
       if (bomb.destination == attackFactory) {
         return bomb.remainingTurns;
       }

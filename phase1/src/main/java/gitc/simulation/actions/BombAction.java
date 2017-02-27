@@ -1,5 +1,6 @@
 package gitc.simulation.actions;
 
+import gitc.GameState;
 import gitc.entities.Factory;
 
 public class BombAction extends Action {
@@ -15,6 +16,8 @@ public class BombAction extends Action {
 
   @Override
   public String output() {
+    // BIG HACK
+    GameState.me.bombsLeft--;
     return "BOMB "+src.id+" "+dst.id;
   }
 }
