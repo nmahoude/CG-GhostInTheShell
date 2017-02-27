@@ -4,20 +4,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+import gitc.GameState;
+
 public class Factory extends Entity {
   public int[] distances; 
   public List<Troop> troops = new ArrayList<>();
+  
   public int[] unitsReadyToFight  = { 0, 0 };
 
   public int units;
   public int productionRate; // 0->3
-  public boolean willBeBombed;
   public int disabled = 0;
   public int[] unitsInTransit = { 0, 0 };
 
   public int b_units;
   public int b_productionRate; // 0->3
-  public boolean b_willBeBombed;
   public int b_disabled = 0;
   public int[] b_unitsInTransit = { 0, 0 };
 
@@ -26,7 +27,6 @@ public class Factory extends Entity {
     super.backup();
     b_units = units;
     b_productionRate = productionRate;
-    b_willBeBombed = willBeBombed;
     b_disabled = disabled;
     b_unitsInTransit[0] = unitsInTransit[0];
     b_unitsInTransit[1] = unitsInTransit[1];
@@ -35,7 +35,6 @@ public class Factory extends Entity {
     super.restore();
     units = b_units;
     productionRate = b_productionRate;
-    willBeBombed = b_willBeBombed;
     disabled = b_disabled;
     unitsInTransit[0] = b_unitsInTransit[0];
     unitsInTransit[1] = b_unitsInTransit[1];
@@ -61,14 +60,13 @@ public class Factory extends Entity {
   }
 
   public void clear() {
-    willBeBombed = false;
     troops.clear();
     unitsInTransit[0] = unitsInTransit[1] = 0;
   }
 
   public String tddOutput() {
     return "updateFactory("+id+","
-                  +owner.id+","
+                  //+owner != null ? ""+owner.id : "None" +","
                   +units+","
                   +productionRate+");";
   }
@@ -85,5 +83,19 @@ public class Factory extends Entity {
   public int getCurrentProductionRate() {
     return (disabled == 0) ? this.productionRate : 0;
   }
-
+  
+  public int neededUnit() {
+    int neededUnits = unitsInTransit[GameState.opp.id]-this.units;
+    return neededUnits <= 0 ? 0 : neededUnits;
+  }
+  
+  public boolean isUnderAttackBy(Owner attacker) {
+    if (owner == attacker) {
+      return false;
+    }
+    if (unitsInTransit[attacker.id] > 0) {
+      return true;
+    }
+    return false;
+  }
 }

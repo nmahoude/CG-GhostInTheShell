@@ -1,10 +1,7 @@
 package gitc.ag;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import gitc.entities.Owner;
-import gitc.simulation.actions.MoveAction;
+import gitc.simulation.actions.Action;
 
 public class AGPlayer {
   public final Owner owner;
@@ -23,8 +20,8 @@ public class AGPlayer {
     }
   }
   
-  public void addMoveAction(MoveAction action, int turn) {
+  public void addAction(Action action, int turn) {
     TurnAction tAction = turnActions[turn];
-    tAction.moveActions.add(action);
+    tAction.actions.add(action);
   }
 }

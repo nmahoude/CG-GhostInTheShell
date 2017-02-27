@@ -90,16 +90,13 @@ public class GameState {
           if (TDD_OUPUT) {
             inputBackup.add(troop.tddOutput());
           }
-        } else {
+        } else if (entityType.equals(EntityType.BOMB.name())){
           Bomb bomb = new Bomb(0);
           bomb.read(in);
-          if (bomb.destination != null) {
-            bomb.destination.willBeBombed = true;
+          bombs.add(bomb);
+          if (bomb.destination != unkownFactory) {
           } else {
-            Factory myOnlyFactory = onlyOneFactoryOwned();
-            if (myOnlyFactory != null) {
-              myOnlyFactory.willBeBombed = true;
-            }
+            getBombDestinationFromKnowledge(bomb);
           }
         }
     }
@@ -111,6 +108,16 @@ public class GameState {
     }
     
     backupState();
+  }
+
+  private void getBombDestinationFromKnowledge(Bomb bomb) {
+    Factory myOnlyFactory = onlyOneFactoryOwned();
+    if (myOnlyFactory != null) {
+      bomb.destination = myOnlyFactory;
+      System.err.println("I know where the bomb will hit ! id="+myOnlyFactory.id);
+    } else {
+      System.err.println("I don't know where the bomb will hit");
+    }
   }
 
   private Factory onlyOneFactoryOwned() {
@@ -179,5 +186,14 @@ public class GameState {
   }
   public List<Bomb> getBombs() {
     return bombs;
+  }
+
+  public int willBombHitFactory(Factory attackFactory) {
+    for (Bomb bomb : bombs) {
+      if (bomb.destination == attackFactory) {
+        return bomb.remainingTurns;
+      }
+    }
+    return -1;
   }
 }

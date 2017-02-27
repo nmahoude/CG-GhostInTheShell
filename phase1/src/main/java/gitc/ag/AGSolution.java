@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import gitc.GameState;
+import gitc.simulation.actions.Action;
 import gitc.simulation.actions.MoveAction;
 
 public class AGSolution {
@@ -45,8 +46,13 @@ public class AGSolution {
   public String output() {
     String output = "";
     TurnAction tAction = players.get(0).turnActions[0];
-    for (MoveAction action  :tAction.moveActions) {
-      output += action.output()+";";
+
+    if (tAction.actions.size() == 0) {
+      output += "WAIT"+";";
+    } else {
+      for (Action action  :tAction.actions) {
+        output += action.output()+";";
+      }
     }
     output+="MSG from AG";
     return output;

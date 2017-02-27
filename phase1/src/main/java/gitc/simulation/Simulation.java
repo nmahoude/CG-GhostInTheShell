@@ -11,6 +11,8 @@ import gitc.ag.TurnAction;
 import gitc.entities.Bomb;
 import gitc.entities.Factory;
 import gitc.entities.Troop;
+import gitc.simulation.actions.Action;
+import gitc.simulation.actions.ActionType;
 import gitc.simulation.actions.BombAction;
 import gitc.simulation.actions.MoveAction;
 import gitc.simulation.actions.UpgradeAction;
@@ -46,7 +48,7 @@ public class Simulation {
     } else {
       solution.energy = 
           (1.0*me.units / (me.units+opp.units)) + 
-          100.0*(1.0*me.production / (me.production+opp.production)); 
+          (2.0*(1.0*me.production / (me.production+opp.production))); 
     }
     
     state.restoreState();
@@ -179,7 +181,10 @@ public class Simulation {
     for (AGPlayer player : solution.players) {
       TurnAction tAction = player.turnActions[turnIndex];
       // Send bombs
-      for (BombAction bombAction : tAction.bombActions) {
+      
+      for (Action action : tAction.actions) {
+        if (action.type != ActionType.BOMB) continue;
+        BombAction bombAction = (BombAction)action;
         int distance = bombAction.src.getDistanceTo(bombAction.dst);
         Bomb bomb = new Bomb(player.owner, bombAction.src, bombAction.dst, distance);
         if (player.remainingBombs > 0 && bomb.findWithSameRouteInList(newBombs) == null) {
@@ -190,7 +195,9 @@ public class Simulation {
       }
 
       // Send troops
-      for (MoveAction moveAction : tAction.moveActions) {
+      for (Action action : tAction.actions) {
+        if (action.type != ActionType.MOVE) continue;
+        MoveAction moveAction = (MoveAction)action;
         int unitsToMove = Math.min(moveAction.src.units, moveAction.units);
         Troop troop = new Troop(player.owner, moveAction.src, moveAction.dst, unitsToMove);
 
@@ -209,7 +216,9 @@ public class Simulation {
       }
 
       // Increase
-      for (UpgradeAction incAction : tAction.upgradeActions) {
+      for (Action action : tAction.actions) {
+        if (action.type != ActionType.UPGRADE) continue;
+        UpgradeAction incAction = (UpgradeAction)action;
         if (incAction.src.units >= COST_INCREASE_PRODUCTION && incAction.src.productionRate < MAX_PRODUCTION_RATE) {
           incAction.src.productionRate++;
           incAction.src.units -= COST_INCREASE_PRODUCTION;

@@ -1,5 +1,7 @@
 package gitc;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 import gitc.ag.AG;
@@ -14,7 +16,7 @@ import gitc.simulation.Simulation;
  * @author nmahoude
  *
  */
-public class Player_V2Bronze {
+public class Player_DIRECt {
   private static Scanner in;
   private static int turn = 0;
   public static AG ag;
@@ -52,6 +54,33 @@ public class Player_V2Bronze {
        */
       String bestOutput ="WAIT";
       double bestScore = 0;
+      
+      List<Factory> myFactoriesUnderAttack = new ArrayList<>(10);
+      List<Factory> oppFactoriesUnderAttack = new ArrayList<>(10);
+      List<Factory> myFactoriesSupplier = new ArrayList<>(10);
+      // DEFEND
+      for (Factory factory : gameState.getFactories()) {
+        if (factory.owner == GameState.me) {
+          if (factory.isUnderAttackBy(GameState.opp)) {
+            myFactoriesUnderAttack.add(factory);
+          } else {
+            myFactoriesSupplier.add(factory);
+          }
+        }
+        if (factory.owner == GameState.opp && factory.isUnderAttackBy(GameState.me)) {
+          oppFactoriesUnderAttack.add(factory);
+        }
+      }
+      System.err.println("My factories under attack : ");
+      for (Factory factory : myFactoriesUnderAttack) {
+        System.err.println(factory.id + " - help needed : "+factory.neededUnit());
+      }
+      System.err.println("My supplier factories : ");
+      for (Factory factory : myFactoriesSupplier) {
+        System.err.println(factory.id + " - disposable units :"+(factory.units-1));
+      }
+      
+      
       // ATTACK
       for (Factory factory : gameState.getFactories()) {
         if (factory.isOpponent()) {
@@ -104,8 +133,6 @@ public class Player_V2Bronze {
         Factory from = null;
         for (Factory factory : gameState.getFactories()) {
           if (factory.isOpponent() 
-              && 
-                !factory.willBeBombed
               && ( (turn == 0 && factory.productionRate >= 2) 
               || factory.units > gameState.cyborgsTotal / (gameState.factoryCount * 2))
               ) {
