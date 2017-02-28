@@ -38,7 +38,7 @@ public class Simulation {
     bombs.clear();
     bombs.addAll(state.getBombs());
     
-    for (int turn = 0; turn < AGSolution.DEPTH; turn++) {
+    for (int turn = 0; turn < AGSolution.SIMULATION_DEPTH; turn++) {
       simulate(solution, turn);
     }
     
@@ -228,5 +228,15 @@ public class Simulation {
       }
     }
     return inTransit;
+  }
+
+  public int getTroopsInFactory(Owner me) {
+    int total = 0;
+    for (Factory factory : GameState.factories) {
+      if (factory.isMe()) {
+        total = factory.units;
+      }
+    }
+    return total;
   }
 }

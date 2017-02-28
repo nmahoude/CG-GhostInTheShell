@@ -19,7 +19,10 @@ import gitc.simulation.actions.MoveAction;
 import gitc.simulation.actions.UpgradeAction;
 
 /**
- * seed pour petit terrain : 813958030 (1 seul resource > 0 !) 203791280
+ * seed pour petit terrain : 
+ * 
+ * 813958030 (1 seul resource > 0 !)
+ * 196562510 (5 factories, prod moyenne)
  * 
  * @author nmahoude
  *
@@ -30,7 +33,7 @@ import gitc.simulation.actions.UpgradeAction;
  */
 public class Player {
   private static Scanner in;
-  private static int turn = 0;
+  public static int turn = 0;
   public static AG ag;
   public static GameState gameState;
   public static Simulation simulation;
@@ -57,46 +60,18 @@ public class Player {
 
       AGSolution agNoMoves = new AGSolution(); // no actions
       simulation.simulate(agNoMoves);
-      System.err.println("ag energy (no move): " + agNoMoves.energy);
 
       AGSolution bestAG = null;
 
       Random random = new Random();
       long startSim = System.currentTimeMillis();
-      // Build possible actions
-      Map<Integer, List<Action> > possibleActions = new HashMap<>();
-      for (Factory factory : GameState.factories) {
-        List<Action> actions = new ArrayList<>();
-        possibleActions.put(factory.id, actions);
-        
-        if (factory.isMe()) {
-          // upgrade
-          if (factory.units > 10) {
-            actions.add(new UpgradeAction(factory));
-          }
-          // move
-          if (factory.units > 0) {
-            for (Factory otherFactory : GameState.factories) {
-              if (otherFactory != factory && !otherFactory.isMe()) {
-                // add some possible move actions
-                actions.add(new MoveAction(factory, otherFactory, 1+random.nextInt(factory.units)));
-              }
-            }
-          }
-          // bomb
-          if (GameState.me.bombsLeft > 0) {
-            for (Factory otherFactory : GameState.factories) {
-              if (otherFactory.isOpponent()) {
-                actions.add(new BombAction(factory, otherFactory));
-              }
-            }
-          }
-        }
-      }
 
       int simulations = 0;
       while (System.nanoTime() - start < 40_000_000) {
         simulations++;
+        // Build possible actions
+        Map<Integer, List<Action>> possibleActions = getPossibleActions(random);
+
         AGSolution agRand = new AGSolution();
         for (Factory factory : GameState.factories) {
           List<Action> actions = possibleActions.get(factory.id);
@@ -120,9 +95,43 @@ public class Player {
       System.out.println(bestAG.output());
 
       System.err.println("Simulation took : " + (endSim - startSim) + " ms for " + simulations + " simulations");
-      System.err.println("Best AG energy : " + bestAG.energy);
+      //System.err.println("ag energy (no move): " + agNoMoves.energy);
+      //System.err.println("Best AG energy : " + bestAG.energy);
       cleanUp();
     }
+  }
+
+  private static Map<Integer, List<Action>> getPossibleActions(Random random) {
+    Map<Integer, List<Action> > possibleActions = new HashMap<>();
+    for (Factory factory : GameState.factories) {
+      List<Action> actions = new ArrayList<>();
+      possibleActions.put(factory.id, actions);
+      
+      if (factory.isMe()) {
+        // upgrade
+        if (factory.units >= 10) {
+          actions.add(new UpgradeAction(factory));
+        }
+        // move
+        if (factory.units > 0) {
+          for (Factory otherFactory : GameState.factories) {
+            if (otherFactory != factory && !otherFactory.isMe()) {
+              // add some possible move actions
+              actions.add(new MoveAction(factory, otherFactory, 1+random.nextInt(factory.units)));
+            }
+          }
+        }
+        // bomb
+        if (GameState.me.bombsLeft > 0) {
+          for (Factory otherFactory : GameState.factories) {
+            if (otherFactory.isOpponent()) {
+              actions.add(new BombAction(factory, otherFactory));
+            }
+          }
+        }
+      }
+    }
+    return possibleActions;
   }
 
   private static void getFactoriesStatus(List<Factory> myFactoriesUnderAttack, List<Factory> oppFactoriesUnderAttack, List<Factory> myFactoriesSupplier) {

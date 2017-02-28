@@ -5,7 +5,7 @@ import gitc.simulation.actions.Action;
 
 public class AGPlayer {
   public final Owner owner;
-  public TurnAction[] turnActions = new TurnAction[AGSolution.DEPTH];
+  public TurnAction[] turnActions = new TurnAction[AGSolution.SIMULATION_DEPTH];
   public int remainingBombs = 2;
   
   // part of scoring
@@ -15,7 +15,8 @@ public class AGPlayer {
   
   public AGPlayer(Owner owner) {
     this.owner = owner;
-    for (int i=0;i<AGSolution.DEPTH;i++) {
+    remainingBombs = owner.bombsLeft;
+    for (int i=0;i<AGSolution.SIMULATION_DEPTH;i++) {
       turnActions[i] = new TurnAction();
     }
   }

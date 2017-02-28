@@ -53,23 +53,28 @@ public class Factory extends Entity {
   
   public double calculateInfluence(List<Troop> troops) {
     // current units
+    double totalUnits = units;
     double currentUnitsInfluence = units * (this.owner == GameState.me ? 1.0 : -1.0);
-
+    
     // incomming troops
     for (Troop troop : troops) {
       if (troop.destination == this) {
-        currentUnitsInfluence += (troop.owner == GameState.me ? 1.0 : -1.0) * troop.units / troop.remainingTurns;
+        double local = troop.units / troop.remainingTurns;
+        currentUnitsInfluence += (troop.owner == GameState.me ? 1.0 : -1.0) * local;
+        totalUnits += Math.abs(local);
       }
     }
     
     // neighbors factory
     for (Factory factory : GameState.factories) {
       if (factory != this && !factory.isNeutral()) {
-        currentUnitsInfluence += 0.25 * factory.units * (factory.owner == GameState.me ? 1.0 : -1.0) / factory.getDistanceTo(this);
+        double local = 0.25 * factory.units / factory.getDistanceTo(this);
+        currentUnitsInfluence += (factory.owner == GameState.me ? 1.0 : -1.0) * local;
+        totalUnits += Math.abs(local);
       }
     }
     
-    this.influence = currentUnitsInfluence;
+    this.influence = currentUnitsInfluence / totalUnits;
     return influence;
   }
   
@@ -118,5 +123,24 @@ public class Factory extends Entity {
       return true;
     }
     return false;
+  }
+  public Factory getClosestEnemyFactory() {
+    Factory closest = null;
+    int minDistance = 1_000;
+    
+    for (Factory factory : GameState.factories) {
+      if (factory.isMe()) continue;
+      
+      if (closest == null) {
+        closest = factory;
+      } else {
+        int distance = closest.getDistanceTo(this);
+        if (distance < minDistance) {
+          minDistance = distance;
+          closest = factory;
+        }
+      }
+    }
+    return closest;
   }
 }

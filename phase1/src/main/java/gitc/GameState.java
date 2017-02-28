@@ -116,7 +116,7 @@ public class GameState {
     
     cyborgsTotal = cyborgs[0] + cyborgs[1];
     
-    if (TDD_OUPUT) {
+    if (Player.turn == 280 && TDD_OUPUT) {
       tddOuput();
     }
     preTurnUpdate();
