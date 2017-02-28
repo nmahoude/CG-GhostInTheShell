@@ -26,13 +26,14 @@ public class Troop extends MovableEntity {
     remainingTurns = in.nextInt();
   }
   public String tddOutput() {
-      return "updateTroop("
-              +id+","
-              +owner.id+","
-              +source.id+","
-              +destination.id+","
-              +units+","
-              +remainingTurns+");";
+      return "source+=\""
+              +id+" "
+              +"TROOP"+" "
+              +playerId+" "
+              +source.id+" "
+              +destination.id+" "
+              +units+" "
+              +remainingTurns+"\\n\";";
   }
   public void affectToFactory(Factory[] factories) {
     destination.addTroop(this);

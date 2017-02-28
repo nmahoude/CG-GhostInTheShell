@@ -147,7 +147,7 @@ public class Simulation {
 
   private void createFactoryUnits() {
     for (Factory factory : GameState.factories) {
-      if (!factory.isNeutral()) {
+      if (factory.owner != null /*NOT neutral*/) {
         factory.units += factory.getCurrentProductionRate();
       }
     }

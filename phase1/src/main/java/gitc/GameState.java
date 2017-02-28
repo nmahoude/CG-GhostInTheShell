@@ -14,7 +14,7 @@ import gitc.entities.Owner;
 import gitc.entities.Troop;
 
 public class GameState {
-  private static final boolean TDD_OUPUT = false;
+  public static boolean TDD_OUPUT = false;
   List<String> inputSetupBackup = new ArrayList<>();
   List<String> inputBackup = new ArrayList<>();
 
@@ -31,6 +31,7 @@ public class GameState {
   public int cyborgs[] = new int[2];
   public int production[] = new int [2];
   public int cyborgsTotal;
+  private int entityCount;
   
   public void readSetup(Scanner in) {
     factoryCount = in.nextInt();
@@ -41,21 +42,19 @@ public class GameState {
       factories[id] = new Factory(id, factoryCount);
     }
     
-    if (TDD_OUPUT) {
-      inputSetupBackup.add("setup("+factoryCount+","+linkCount+");");
-    }
+    inputSetupBackup.add("GameState state = new GameState();");
+    inputSetupBackup.add("String setup = \""+factoryCount+" "+linkCount+"\\n\";");
     
     for (int i = 0; i < linkCount; i++) {
-        int factory1 = in.nextInt();
-        int factory2 = in.nextInt();
-        int distance = in.nextInt();
-        factories[factory1].setupDistance(factories[factory2], distance);
-        factories[factory2].setupDistance(factories[factory1], distance);
-        
-        if (TDD_OUPUT) {
-          inputSetupBackup.add("addLinks("+factory1+","+factory2+","+distance+");");
-        }
+      int factory1 = in.nextInt();
+      int factory2 = in.nextInt();
+      int distance = in.nextInt();
+      factories[factory1].setupDistance(factories[factory2], distance);
+      factories[factory2].setupDistance(factories[factory1], distance);
+      
+      inputSetupBackup.add("setup +=\""+factory1+" "+factory2+" "+distance+"\\n\";");
     }
+    setupTddOutput();
   }
   
   public void read(Scanner in) {
@@ -63,8 +62,7 @@ public class GameState {
     
     clearRound();
     
-    // read from game
-    int entityCount = in.nextInt(); // the number of entities (e.g. factories and troops)
+    entityCount = in.nextInt();
     int troopCount = entityCount-factoryCount;
     troops.clear();
 
@@ -103,6 +101,9 @@ public class GameState {
             } else {
               getBombDestinationFromKnowledge(bomb);
             }
+            if (bomb.destination != unkownFactory) {
+              bomb.destination.bombIncomming = true;
+            }
           } else {
             // only read, we already know the bomb
             bomb.read(in);
@@ -116,7 +117,7 @@ public class GameState {
     
     cyborgsTotal = cyborgs[0] + cyborgs[1];
     
-    if (Player.turn == 280 && TDD_OUPUT) {
+    if (TDD_OUPUT) {
       tddOuput();
     }
     preTurnUpdate();
@@ -125,6 +126,17 @@ public class GameState {
 
   private void preTurnUpdate() {
     updateFactoryInfluence();
+    updateFactoryFront();
+  }
+
+  private void updateFactoryFront() {
+    //System.err.println("Factory front : ");
+    for (Factory factory : factories) {
+      if (factory.isMe()) {
+        factory.calculateFront();
+        //System.err.println(""+factory.id+": "+(factory.isFront ? " FRONT" : "BACK"));
+      }
+    }
   }
 
   private void updateFactoryInfluence() {
@@ -170,13 +182,21 @@ public class GameState {
   }
 
   private void tddOuput() {
-    for (String setupLine : inputSetupBackup) {
-      System.err.println(setupLine);
-    }
-    System.err.println("/************/");
+    System.err.println("String source=\"\";");
+    System.err.println("source+=\""+entityCount+"\\n\";");
     for (String line : inputBackup) {
       System.err.println(line);
     }
+    System.err.println("in = new Scanner(source);");
+    System.err.println("state.read(in);");
+  }
+
+  private void setupTddOutput() {
+    for (String setupLine : inputSetupBackup) {
+      System.err.print(setupLine);
+    }
+    System.err.println("Scanner in = new Scanner(setup);");
+    System.err.println("state.readSetup(in);");
   }
 
   /** prepare for restore */

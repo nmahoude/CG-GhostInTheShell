@@ -22,8 +22,10 @@ import gitc.simulation.actions.UpgradeAction;
  * seed pour petit terrain : 
  * 
  * 813958030 (1 seul resource > 0 !)
+ * 
  * 196562510 (5 factories, prod moyenne)
  * 
+ * 601738221 distribution geographique sympa pour regarder ce qui se passe
  * @author nmahoude
  *
  * TODO : nombre d'units en transit
@@ -33,6 +35,7 @@ import gitc.simulation.actions.UpgradeAction;
  */
 public class Player {
   private static Scanner in;
+  public static long NANOSECONDS_THINK_TIME = 40_000_000;
   public static int turn = 0;
   public static AG ag;
   public static GameState gameState;
@@ -48,57 +51,51 @@ public class Player {
     gameState.readSetup(in);
     while (true) {
       gameState.read(in);
-      long start = System.nanoTime();
+      doOneTurn();
+    }
+  }
 
-      // find best action possible
-      long timeLimit = start + turn != 0 ? 85_000_000L : 800_000_000L;
-      // Some debug information
-      // System.err.println("My forces : ["+gameState.cyborgs[0] + "/
-      // prod:"+gameState.production[0]+"]" );
-      // System.err.println("Op forces : ["+gameState.cyborgs[1] + "/
-      // prod:"+gameState.production[1]+"]" );
+  public static void doOneTurn() {
+    Random random = new Random();
 
-      AGSolution agNoMoves = new AGSolution(); // no actions
-      simulation.simulate(agNoMoves);
+    long start = System.nanoTime();
+    AGSolution bestAG = null;
 
-      AGSolution bestAG = null;
+    long startSim = System.nanoTime();
+    int simulations = 0;
+    while (System.nanoTime() - startSim < NANOSECONDS_THINK_TIME) {
+      simulations++;
+      // Build possible actions
+      Map<Integer, List<Action>> possibleActions = getPossibleActions(random);
 
-      Random random = new Random();
-      long startSim = System.currentTimeMillis();
-
-      int simulations = 0;
-      while (System.nanoTime() - start < 40_000_000) {
-        simulations++;
-        // Build possible actions
-        Map<Integer, List<Action>> possibleActions = getPossibleActions(random);
-
-        AGSolution agRand = new AGSolution();
-        for (Factory factory : GameState.factories) {
-          List<Action> actions = possibleActions.get(factory.id);
-          if (actions.size() > 0) {
-            int actionNumber = random.nextInt(actions.size());
-            Collections.shuffle(actions);
-            for (int i=0;i<actionNumber;i++) {
-              if (random.nextBoolean()) {
-                agRand.players.get(0).addAction(actions.get(i), 0);
-              }
+      AGSolution agRand = new AGSolution();
+      for (Factory factory : GameState.factories) {
+        List<Action> actions = possibleActions.get(factory.id);
+        if (actions.size() > 0) {
+          int actionNumber = random.nextInt(actions.size());
+          Collections.shuffle(actions);
+          for (int i=0;i<actionNumber;i++) {
+            if (random.nextBoolean()) {
+              agRand.players.get(0).addAction(actions.get(i), 0);
             }
           }
         }
-        simulation.simulate(agRand);
-        if (bestAG == null || agRand.energy > bestAG.energy) {
-          bestAG = agRand;
-        }
       }
-      long endSim = System.currentTimeMillis();
-
-      System.out.println(bestAG.output());
-
-      System.err.println("Simulation took : " + (endSim - startSim) + " ms for " + simulations + " simulations");
-      //System.err.println("ag energy (no move): " + agNoMoves.energy);
-      //System.err.println("Best AG energy : " + bestAG.energy);
-      cleanUp();
+      simulation.simulate(agRand);
+      if (bestAG == null || agRand.energy > bestAG.energy) {
+        bestAG = agRand;
+      }
     }
+    long endSim = System.nanoTime();
+    if (bestAG == null) {
+      System.out.println("WAIT");
+    } else {
+      System.out.println(bestAG.output());
+    }
+    System.err.println("Simulation took : " + (int)((endSim - startSim)/1_000_000) + " ms for " + simulations + " simulations");
+    //System.err.println("ag energy (no move): " + agNoMoves.energy);
+    //System.err.println("Best AG energy : " + bestAG.energy);
+    cleanUp();
   }
 
   private static Map<Integer, List<Action>> getPossibleActions(Random random) {
@@ -109,22 +106,28 @@ public class Player {
       
       if (factory.isMe()) {
         // upgrade
-        if (factory.units >= 10) {
+        if (!factory.isFront && factory.units >= 10 && factory.productionRate < 3) {
           actions.add(new UpgradeAction(factory));
         }
-        // move
+        // move : add some possible move actions
         if (factory.units > 0) {
           for (Factory otherFactory : GameState.factories) {
-            if (otherFactory != factory && !otherFactory.isMe()) {
-              // add some possible move actions
-              actions.add(new MoveAction(factory, otherFactory, 1+random.nextInt(factory.units)));
+            if (otherFactory != factory) {
+              // front attacks
+              if (factory.isFront && !otherFactory.isMe()) {
+                actions.add(new MoveAction(factory, otherFactory, 1+random.nextInt(factory.units)));
+              }
+              // back send troops to front
+              if (!factory.isFront && otherFactory.isFront && otherFactory.isMe()) {
+                actions.add(new MoveAction(factory, otherFactory, 1+random.nextInt(factory.units)));
+              }
             }
           }
         }
         // bomb
         if (GameState.me.bombsLeft > 0) {
           for (Factory otherFactory : GameState.factories) {
-            if (otherFactory.isOpponent()) {
+            if (otherFactory.isOpponent() && !otherFactory.bombIncomming) {
               actions.add(new BombAction(factory, otherFactory));
             }
           }

@@ -10,13 +10,13 @@ import gitc.simulation.Simulation;
 import gitc.simulation.actions.Action;
 
 public class AGSolution {
-  public static final int SIMULATION_DEPTH = 12; // 11 or + for the upgrade to activate
+  public static final int SIMULATION_DEPTH = 10; // 11 or + for the upgrade to activate
   public static DecimalFormat f = new DecimalFormat("#####.00");
 
   public double energy = 0;
   public List<AGPlayer> players = new ArrayList<>();
 
-  private String message;
+  public String message;
 
   private AGPlayer me;
 
@@ -87,7 +87,8 @@ public class AGSolution {
       double factoryCountScore = getFactoryCountScore();
       double positioningScore = calculatePositioningOfUnitsScore();
       double troopsInTransitScore = getTroopsInTransitScore();
-
+      double troopsConvergenceScore = getTroopConvergenceScore();
+      
       energy = 0
           + (1.0 * unitScore) 
           + (15.0 * productionScore)
@@ -96,6 +97,7 @@ public class AGSolution {
           + (0.0 * factoryCountScore)
           + (0.0 * positioningScore)
           + (0.0 * troopsInTransitScore)
+          + (100.0 * troopsConvergenceScore)
           ; 
       
       message = "e("+f.format(energy)+")"
@@ -106,7 +108,24 @@ public class AGSolution {
                 +" pos("+f.format(positioningScore)+")"
                 +" troop("+f.format(troopsInTransitScore)+")"
                 ;
+      // debug
+      //message = " prod: "+me.production+" / "+opp.production; 
     }
+  }
+
+  private double getTroopConvergenceScore() {
+    int total = 0;
+    int max = 0;
+    for (Factory factory : GameState.factories) {
+      if (factory.isOpponent()) {
+        max = Math.max(max, factory.unitsInTransit[0]);
+        total +=factory.unitsInTransit[0];
+      }
+    }
+    if (total == 0) {
+      return 0;
+    }
+    return 1.0 * max / total;
   }
 
   private double getTroopsInTransitScore() {
@@ -116,11 +135,11 @@ public class AGSolution {
   }
 
   private double getUnitsCountScore() {
-    return 1.0 * me.units / (me.units+opp.units);
+    return 2.0 * me.units / (me.units+opp.units) - 1 ;
   }
 
   private double getProductionScore() {
-    return 1.0*me.production / (me.production+opp.production);
+    return 2.0*me.production / (me.production+opp.production) - 1 ;
   }
 
   private double getBombRemainingScore() {

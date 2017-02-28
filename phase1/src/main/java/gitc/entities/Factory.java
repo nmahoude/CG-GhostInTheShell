@@ -8,19 +8,21 @@ import gitc.GameState;
 public class Factory extends Entity {
   public int[] distances; 
   public int[] unitsReadyToFight  = { 0, 0 };
-
+  public boolean isFront;
+  
   public int units;
   public int productionRate; // 0->3
   public int disabled = 0;
   public int[] unitsInTransit = { 0, 0 };
   public double influence;
+  public boolean bombIncomming = false;
   
   public int b_units;
   public int b_productionRate; // 0->3
   public int b_disabled = 0;
   public int[] b_unitsInTransit = { 0, 0 };
   public double b_influence;
-
+  public boolean b_bombIncomming;
 // backup
   public void backup() {
     super.backup();
@@ -30,6 +32,7 @@ public class Factory extends Entity {
     b_unitsInTransit[0] = unitsInTransit[0];
     b_unitsInTransit[1] = unitsInTransit[1];
     b_influence = influence;
+    b_bombIncomming = bombIncomming;
   }
   public void restore() {
     super.restore();
@@ -39,6 +42,7 @@ public class Factory extends Entity {
     unitsInTransit[0] = b_unitsInTransit[0];
     unitsInTransit[1] = b_unitsInTransit[1];
     influence = b_influence;
+    bombIncomming = b_bombIncomming;
   }
   
   public Factory(int id, int factoriesCount) {
@@ -51,6 +55,11 @@ public class Factory extends Entity {
     distances[toFactory.id] = distance;
   }
   
+  /**
+   * Score who have the influence on this factory
+   * @param troops
+   * @return
+   */
   public double calculateInfluence(List<Troop> troops) {
     // current units
     double totalUnits = units;
@@ -89,13 +98,17 @@ public class Factory extends Entity {
 
   public void clear() {
     unitsInTransit[0] = unitsInTransit[1] = 0;
+    isFront = true;
+    bombIncomming = false;
   }
 
   public String tddOutput() {
-    return "updateFactory("+id+","
-                  //+owner != null ? ""+owner.id : "None" +","
-                  +units+","
-                  +productionRate+");";
+    return "source+=\""+id+" "
+                  +"FACTORY"+" "
+                  +playerId +" "
+                  +units+" "
+                  +productionRate+" "
+                  +"0 0"+"\\n\";";
   }
 
   public void addTroop(Troop troop) {
@@ -124,21 +137,41 @@ public class Factory extends Entity {
     }
     return false;
   }
+  
+  public void calculateFront() {
+    isFront = true;
+    
+    if (unitsInTransit[1] > 0) {
+      return; // combat is coming, we are not the back of the army anymore
+    }
+    
+    Factory closestOpp = getClosestEnemyFactory();
+    if (closestOpp == null) {
+      return;
+    }
+    int distanceToClosest =  this.getDistanceTo(closestOpp);
+    // find  a closest 
+    for (Factory factory : GameState.factories) {
+      if (factory.isMe() && factory != this && factory.getDistanceTo(closestOpp) < distanceToClosest) {
+        if (this.getDistanceTo(factory) < factory.getDistanceTo(closestOpp)) {
+          isFront = false; // find a closest factory to enemy, we consider we are at the back
+          return;
+        }
+      }
+    }
+  }
+  
   public Factory getClosestEnemyFactory() {
     Factory closest = null;
     int minDistance = 1_000;
     
     for (Factory factory : GameState.factories) {
-      if (factory.isMe()) continue;
+      if (!factory.isOpponent()) continue;
       
-      if (closest == null) {
+      int distance = factory.getDistanceTo(this);
+      if (closest == null || distance < minDistance) {
         closest = factory;
-      } else {
-        int distance = closest.getDistanceTo(this);
-        if (distance < minDistance) {
-          minDistance = distance;
-          closest = factory;
-        }
+        minDistance = distance;
       }
     }
     return closest;
