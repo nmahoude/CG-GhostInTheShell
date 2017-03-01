@@ -16,6 +16,7 @@ public class Factory extends Entity {
   public int[] unitsInTransit = { 0, 0 };
   public double influence;
   public boolean bombIncomming = false;
+  public int distanceToFront;
   
   public int b_units;
   public int b_productionRate; // 0->3
@@ -23,7 +24,16 @@ public class Factory extends Entity {
   public int[] b_unitsInTransit = { 0, 0 };
   public double b_influence;
   public boolean b_bombIncomming;
-// backup
+  public int b_distanceToFront;
+  
+
+  @Override
+  public String toString() {
+    return "Factory("+id+") player="+playerId+" prod="+productionRate+" units="+units + (disabled>0 ? "DISABLED" :"");
+  }
+  
+  
+  // backup
   public void backup() {
     super.backup();
     b_units = units;
@@ -33,6 +43,7 @@ public class Factory extends Entity {
     b_unitsInTransit[1] = unitsInTransit[1];
     b_influence = influence;
     b_bombIncomming = bombIncomming;
+    b_distanceToFront = distanceToFront;
   }
   public void restore() {
     super.restore();
@@ -43,6 +54,7 @@ public class Factory extends Entity {
     unitsInTransit[1] = b_unitsInTransit[1];
     influence = b_influence;
     bombIncomming = b_bombIncomming;
+    distanceToFront = b_distanceToFront;
   }
   
   public Factory(int id, int factoriesCount) {
@@ -134,9 +146,16 @@ public class Factory extends Entity {
   }
   
   public void calculateFront() {
-    isFront = true;
+    if (owner == null) {
+      distanceToFront = 0;
+      isFront = false;
+      return;
+    }
     
-    if (unitsInTransit[1] > 0) {
+    isFront = true;
+    distanceToFront = 0;
+    
+    if (unitsInTransit[owner.getEnemy().id] > 0) {
       return; // combat is coming, we are not the back of the army anymore
     }
     
@@ -144,12 +163,15 @@ public class Factory extends Entity {
     if (closestOpp == null) {
       return;
     }
-    int distanceToClosest =  this.getDistanceTo(closestOpp);
+    int distanceToClosestEnemy =  this.getDistanceTo(closestOpp);
     // find  a closest 
-    for (Factory factory : GameState.factories) {
-      if (factory.isMe() && factory != this && factory.getDistanceTo(closestOpp) < distanceToClosest) {
-        if (this.getDistanceTo(factory) < factory.getDistanceTo(closestOpp)) {
+    for (Factory myOtherFactory : GameState.factories) {
+      if (myOtherFactory.isMe() && myOtherFactory != this 
+          && myOtherFactory.getDistanceTo(closestOpp) < distanceToClosestEnemy) {
+        int distanceToMyFactory = this.getDistanceTo(myOtherFactory);
+        if (distanceToMyFactory < myOtherFactory.getDistanceTo(closestOpp)) {
           isFront = false; // find a closest factory to enemy, we consider we are at the back
+          distanceToFront = distanceToMyFactory; /* TODO ce n'est pas la distance la plus courte ! */
           return;
         }
       }
@@ -159,9 +181,9 @@ public class Factory extends Entity {
   public Factory getClosestEnemyFactory() {
     Factory closest = null;
     int minDistance = 1_000;
-    
+    Owner enemy = owner.getEnemy();
     for (Factory factory : GameState.factories) {
-      if (!factory.isOpponent()) continue;
+      if (factory.owner != enemy) continue;
       
       int distance = factory.getDistanceTo(this);
       if (closest == null || distance < minDistance) {

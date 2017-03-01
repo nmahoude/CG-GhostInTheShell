@@ -2,6 +2,7 @@ package gitc;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,8 +54,59 @@ public class Player {
     gameState.readSetup(in);
     while (true) {
       gameState.read(in);
-      doOneTurn();
+      if (turn == 0) {
+        doFirstTurn();
+      } else {
+        doOneTurn();
+      }
+      turn++;
     }
+  }
+
+  private static void doFirstTurn() {
+    Factory myBase = null;
+    Factory oppBase = null;
+    for (Factory factory : GameState.factories) {
+      if (factory.owner == GameState.me) {
+        myBase = factory;
+      }
+      if (factory.owner == GameState.opp) {
+        oppBase = factory;
+      }
+    }
+    
+    List<Factory> mySideFactories = new ArrayList<>();
+    List<Factory> oppSideFactories = new ArrayList<>();
+    for (Factory factory : GameState.factories) {
+      if (factory != myBase) {
+        if (factory.getDistanceTo(myBase) < factory.getDistanceTo(oppBase)) {
+          mySideFactories.add(factory);
+        } else {
+          oppSideFactories.add(factory);
+        }
+      }
+    }
+    
+    List<Factory> optimalChoice = new ArrayList<>();
+    KnapSack.fillPackage(myBase.units, mySideFactories, optimalChoice, mySideFactories.size());
+    
+    String output = "";
+    for (Factory factory : optimalChoice) {
+      output+="MOVE "+myBase.id+" "+factory.id+" "+(factory.units+1)+";";
+    }
+    oppSideFactories.sort(new Comparator<Factory>() {
+      public int compare(Factory f1, Factory f2) {
+        return Integer.compare(f2.productionRate, f1.productionRate);
+      };
+    });
+
+    for (int i=0;i<2;i++) {
+      if (oppSideFactories.get(i).productionRate == 3) {
+        output+="BOMB "+myBase.id+" "+oppSideFactories.get(i).id+";";
+      }
+    }
+    output+="MSG KNAPSACK";
+    System.out.println(output);
   }
 
   public static void doOneTurn() {
@@ -183,6 +235,5 @@ public class Player {
   }
 
   private static void cleanUp() {
-    turn++;
   }
 }

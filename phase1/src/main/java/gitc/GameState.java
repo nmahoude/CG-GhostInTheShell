@@ -14,7 +14,7 @@ import gitc.entities.Owner;
 import gitc.entities.Troop;
 
 public class GameState {
-  public static boolean TDD_OUPUT = true;
+  public static boolean TDD_OUPUT = false;
   List<String> inputSetupBackup = new ArrayList<>();
   List<String> inputBackup = new ArrayList<>();
 
@@ -118,6 +118,7 @@ public class GameState {
     if (TDD_OUPUT) {
       tddOuput();
     }
+
     preTurnUpdate();
     backupState();
   }
@@ -128,12 +129,10 @@ public class GameState {
   }
 
   private void updateFactoryFront() {
-    //System.err.println("Factory front : ");
+//    System.err.println("Factory front : ");
     for (Factory factory : factories) {
-      if (factory.isMe()) {
-        factory.calculateFront();
-        //System.err.println(""+factory.id+": "+(factory.isFront ? " FRONT" : "BACK"));
-      }
+      factory.calculateFront();
+//      System.err.println(""+factory.id+": "+(factory.isFront ? " FRONT" : "BACK"));
     }
   }
 

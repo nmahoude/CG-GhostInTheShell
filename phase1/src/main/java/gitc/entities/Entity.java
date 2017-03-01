@@ -9,11 +9,15 @@ public class Entity {
 
   // backup
   public Owner b_owner;
+  private int b_playerId;
+  
   public void backup() {
+    b_playerId = playerId;
     b_owner = owner;
   }
   public void restore() {
     owner = b_owner;
+    playerId = b_playerId;
   }
   
   public Entity(int id, Owner owner) {
