@@ -14,7 +14,7 @@ import gitc.entities.Owner;
 import gitc.entities.Troop;
 
 public class GameState {
-  public static boolean TDD_OUPUT = false;
+  public static boolean TDD_OUPUT = true;
   List<String> inputSetupBackup = new ArrayList<>();
   List<String> inputBackup = new ArrayList<>();
 
@@ -42,8 +42,7 @@ public class GameState {
       factories[id] = new Factory(id, factoryCount);
     }
     
-    inputSetupBackup.add("GameState state = new GameState();");
-    inputSetupBackup.add("String setup = \""+factoryCount+" "+linkCount+"\\n\";");
+    inputSetupBackup.add("GameState state = new GameBuilder()");
     
     for (int i = 0; i < linkCount; i++) {
       int factory1 = in.nextInt();
@@ -52,7 +51,7 @@ public class GameState {
       factories[factory1].setupDistance(factories[factory2], distance);
       factories[factory2].setupDistance(factories[factory1], distance);
       
-      inputSetupBackup.add("setup +=\""+factory1+" "+factory2+" "+distance+"\\n\";");
+      inputSetupBackup.add(".l(new LB().from("+factory1+").to("+factory2+").d("+distance+").build())");
     }
     setupTddOutput();
   }
@@ -98,16 +97,15 @@ public class GameState {
             bomb = new Bomb(entityId);
             bomb.read(in);
             if (bomb.destination != unkownFactory) {
+              bomb.destination.bombIncomming = true;
             } else {
               getBombDestinationFromKnowledge(bomb);
-            }
-            if (bomb.destination != unkownFactory) {
-              bomb.destination.bombIncomming = true;
             }
           } else {
             // only read, we already know the bomb
             bomb.read(in);
           }
+
           newBombs.put(entityId, bomb);
         }
     }
@@ -182,21 +180,20 @@ public class GameState {
   }
 
   private void tddOuput() {
-    System.err.println("String source=\"\";");
-    System.err.println("source+=\""+entityCount+"\\n\";");
     for (String line : inputBackup) {
       System.err.println(line);
     }
-    System.err.println("in = new Scanner(source);");
-    System.err.println("state.read(in);");
   }
 
   private void setupTddOutput() {
+    int i = 0;
     for (String setupLine : inputSetupBackup) {
+      i++;
       System.err.print(setupLine);
+      if (i % 10 == 0) {
+      }
     }
-    System.err.println("Scanner in = new Scanner(setup);");
-    System.err.println("state.readSetup(in);");
+    System.err.println("");
   }
 
   /** prepare for restore */

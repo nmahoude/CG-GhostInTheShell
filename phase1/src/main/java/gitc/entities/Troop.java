@@ -26,14 +26,13 @@ public class Troop extends MovableEntity {
     remainingTurns = in.nextInt();
   }
   public String tddOutput() {
-      return "source+=\""
-              +id+" "
-              +"TROOP"+" "
-              +playerId+" "
-              +source.id+" "
-              +destination.id+" "
-              +units+" "
-              +remainingTurns+"\\n\";";
+      return ".withTroop(new TB()."
+              +"id("+id+")."
+              +"player("+playerId+")."
+              +"from("+source.id+")."
+              +"to("+destination.id+")."
+              +"units("+units+")."
+              +"turnsLeft("+remainingTurns+"))";
   }
   public void affectToFactory(Factory[] factories) {
     destination.addTroop(this);

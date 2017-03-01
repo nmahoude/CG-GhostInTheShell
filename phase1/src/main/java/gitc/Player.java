@@ -26,6 +26,8 @@ import gitc.simulation.actions.UpgradeAction;
  * 196562510 (5 factories, prod moyenne)
  * 
  * 601738221 distribution geographique sympa pour regarder ce qui se passe
+ * 725226336 sympa aussi
+ * 
  * @author nmahoude
  *
  * TODO : nombre d'units en transit
@@ -98,7 +100,7 @@ public class Player {
     cleanUp();
   }
 
-  private static Map<Integer, List<Action>> getPossibleActions(Random random) {
+  public static Map<Integer, List<Action>> getPossibleActions(Random random) {
     Map<Integer, List<Action> > possibleActions = new HashMap<>();
     for (Factory factory : GameState.factories) {
       List<Action> actions = new ArrayList<>();
@@ -115,11 +117,16 @@ public class Player {
             if (otherFactory != factory) {
               // front attacks
               if (factory.isFront && !otherFactory.isMe()) {
-                actions.add(new MoveAction(factory, otherFactory, 1+random.nextInt(factory.units)));
+                actions.add(new MoveAction(factory, otherFactory, 1 + random.nextInt(factory.units)));
               }
               // back send troops to front
               if (!factory.isFront && otherFactory.isFront && otherFactory.isMe()) {
-                actions.add(new MoveAction(factory, otherFactory, 1+random.nextInt(factory.units)));
+                int units = 1+random.nextInt(factory.units);
+                // check if we can upgrade
+                if (factory.productionRate < 3 && factory.disabled == 0) {
+                  units = Math.min(Math.max(factory.units-10, 0), units);
+                }
+                actions.add(new MoveAction(factory, otherFactory, units));
               }
             }
           }
@@ -127,7 +134,7 @@ public class Player {
         // bomb
         if (GameState.me.bombsLeft > 0) {
           for (Factory otherFactory : GameState.factories) {
-            if (otherFactory.isOpponent() && !otherFactory.bombIncomming) {
+            if (otherFactory.isOpponent() && !otherFactory.bombIncomming && otherFactory.productionRate > 1) {
               actions.add(new BombAction(factory, otherFactory));
             }
           }

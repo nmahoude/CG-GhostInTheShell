@@ -23,11 +23,26 @@ public class AGSolution {
   private AGPlayer opp;
 
   private Simulation simulation;
+  public double unitScore;
+  public double productionScore;
+  public double influenceScore;
+  public double bombRemainingScore;
+  public double factoryCountScore;
+  public double positioningScore;
+  public double troopsInTransitScore;
+  public double troopsConvergenceScore;
+  public double distanceBetweenFactoryScore;
+  public String name;
 
 
   public AGSolution() {
     players.add(new AGPlayer(GameState.me));
     players.add(new AGPlayer(GameState.opp));
+  }
+
+  public AGSolution(String name) {
+    this();
+    this.name = name;
   }
   
   public void copyFromPreviousTurnBest(AGSolution lastBest) {
@@ -69,6 +84,16 @@ public class AGSolution {
     return output;
   }
 
+  public static final double UNIT_SCORE_MULT = 1.0;
+  public static final double PRODUCTION_SCORE_MULT = 3.0;
+  public static final double INFLUENCE_MULT = 0.1;
+  public static final double BOMB_MULT = 0.0;
+  public static final double FACTORY_COUNT_MULT = 1.0;
+  public static final double POSITIONING_MULT = 0.0;
+  public static final double TROOP_TANSIT_MULT = 0.0;
+  public static final double TROOP_CONVERGENCE_MULT = 2.0;
+  public static final double DISTANCE_MULT = 0.0;
+  
   public void calculateHeuristic(Simulation simulation) {
     this.simulation = simulation;
     me = players.get(0);
@@ -80,24 +105,26 @@ public class AGSolution {
       // pseudo calcul of distance between my factories
       // double distance = getPseudoDistanceBetweenFactories();
       
-      double unitScore = getUnitsCountScore();
-      double productionScore = getProductionScore();
-      double influenceScore = updateFactoriesInfluence();
-      double bombRemainingScore = getBombRemainingScore();
-      double factoryCountScore = getFactoryCountScore();
-      double positioningScore = calculatePositioningOfUnitsScore();
-      double troopsInTransitScore = getTroopsInTransitScore();
-      double troopsConvergenceScore = getTroopConvergenceScore();
+      unitScore = getUnitsCountScore();
+      productionScore = getProductionScore();
+      influenceScore = updateFactoriesInfluence();
+      bombRemainingScore = getBombRemainingScore();
+      factoryCountScore = getFactoryCountScore();
+      positioningScore = calculatePositioningOfUnitsScore();
+      troopsInTransitScore = getTroopsInTransitScore();
+      troopsConvergenceScore = getTroopConvergenceScore();
+      distanceBetweenFactoryScore = getDistanceBetweenFactoryScore();
       
       energy = 0
-          + (1.0 * unitScore) 
-          + (15.0 * productionScore)
-          + (0.1 * influenceScore)
-          + (0.0 * bombRemainingScore)
-          + (0.0 * factoryCountScore)
-          + (0.0 * positioningScore)
-          + (0.0 * troopsInTransitScore)
-          + (100.0 * troopsConvergenceScore)
+          + (UNIT_SCORE_MULT * unitScore) 
+          + (PRODUCTION_SCORE_MULT * productionScore)
+          + (INFLUENCE_MULT * influenceScore)
+          + (BOMB_MULT * bombRemainingScore)
+          + (FACTORY_COUNT_MULT * factoryCountScore)
+          + (POSITIONING_MULT * positioningScore)
+          + (TROOP_TANSIT_MULT * troopsInTransitScore)
+          + (TROOP_CONVERGENCE_MULT * troopsConvergenceScore)
+          + (DISTANCE_MULT * distanceBetweenFactoryScore)
           ; 
       
       message = "e("+f.format(energy)+")"
@@ -111,6 +138,29 @@ public class AGSolution {
       // debug
       //message = " prod: "+me.production+" / "+opp.production; 
     }
+  }
+
+  private double getDistanceBetweenFactoryScore() {
+    int distance = 0; // will be squared
+    int totalDistance = 0;
+    
+    for (Factory f1 : GameState.factories) {
+      if (!f1.isMe()) {
+        continue;
+      }
+      for (Factory f2: GameState.factories) {
+        int localDistance = f1.getDistanceTo(f2);
+        totalDistance+=localDistance;
+        if (!f2.isMe()) {
+          continue;
+        }
+        distance += localDistance;
+      }
+    }
+    if (totalDistance == 0 ) {
+      return 0;
+    }
+    return 1.0-1.0*distance / totalDistance;
   }
 
   private double getTroopConvergenceScore() {
@@ -139,6 +189,9 @@ public class AGSolution {
   }
 
   private double getProductionScore() {
+    if (me.production+opp.production == 0) {
+      return 0;
+    }
     return 2.0*me.production / (me.production+opp.production) - 1 ;
   }
 
@@ -204,7 +257,8 @@ public class AGSolution {
   private double updateFactoriesInfluence() {
     double total = 0;
     for (Factory factory : GameState.factories) {
-      total += factory.calculateInfluence(simulation.troops);
+      double calculateInfluence = factory.calculateInfluence(simulation.troops);
+      total += calculateInfluence;
     }
     return total / GameState.factories.length;
   }

@@ -25,6 +25,8 @@ public class Bomb extends MovableEntity {
     int dstIndex = in.nextInt();
     if (dstIndex != -1) {
       destination = GameState.factories[dstIndex];
+      destination.bombIncomming = true;
+
       remainingTurns = in.nextInt();
     } else {
       destination = GameState.unkownFactory;

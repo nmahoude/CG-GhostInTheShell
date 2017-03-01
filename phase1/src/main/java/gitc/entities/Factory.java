@@ -77,7 +77,7 @@ public class Factory extends Entity {
     // neighbors factory
     for (Factory factory : GameState.factories) {
       if (factory != this && !factory.isNeutral()) {
-        double local = 0.25 * factory.units / factory.getDistanceTo(this);
+        double local = factory.units / factory.getDistanceTo(this);
         currentUnitsInfluence += (factory.owner == GameState.me ? 1.0 : -1.0) * local;
         totalUnits += Math.abs(local);
       }
@@ -92,7 +92,7 @@ public class Factory extends Entity {
     readPlayer(in.nextInt());
     units = in.nextInt();
     productionRate = in.nextInt();
-    int unused1 = in.nextInt();
+    disabled = in.nextInt();
     int unused2 = in.nextInt();
   }
 
@@ -103,12 +103,7 @@ public class Factory extends Entity {
   }
 
   public String tddOutput() {
-    return "source+=\""+id+" "
-                  +"FACTORY"+" "
-                  +playerId +" "
-                  +units+" "
-                  +productionRate+" "
-                  +"0 0"+"\\n\";";
+    return ".withFactory(new FB().id("+id+").player("+playerId+").units("+units+").prod("+productionRate+").disabled("+disabled+").build())";
   }
 
   public void addTroop(Troop troop) {
