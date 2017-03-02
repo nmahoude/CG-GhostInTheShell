@@ -17,7 +17,7 @@ import gitc.simulation.Simulation;
 
 public class GameState {
   public static boolean TDD_OUPUT = false;
-  public static boolean FACTORY_FUTURE_OUPUT = true;
+  public static boolean FACTORY_FUTURE_OUPUT = false;
 
   List<String> inputSetupBackup = new ArrayList<>();
   List<String> inputBackup = new ArrayList<>();
@@ -66,6 +66,10 @@ public class GameState {
     clearRound();
     
     entityCount = in.nextInt();
+    // ** INIT PLAYER START */
+    Player.start = System.nanoTime();
+
+    
     int troopCount = entityCount-factoryCount;
     troops.clear();
 
@@ -234,9 +238,7 @@ public class GameState {
     if (myOnlyFactory != null) {
       bomb.destination = myOnlyFactory;
       bomb.remainingTurns = myOnlyFactory.getDistanceTo(bomb.source);
-      System.err.println("I know where the bomb will hit ! id="+myOnlyFactory.id);
     } else {
-      System.err.println("I don't know where the bomb will hit");
     }
   }
 

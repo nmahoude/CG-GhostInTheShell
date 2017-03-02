@@ -108,12 +108,12 @@ public class AGSolution {
       unitScore = getUnitsCountScore();
       productionScore = getProductionScore();
       influenceScore = updateFactoriesInfluence();
-      bombRemainingScore = getBombRemainingScore();
+      bombRemainingScore = 0; //getBombRemainingScore();
       factoryCountScore = getFactoryCountScore();
-      positioningScore = calculatePositioningOfUnitsScore();
-      troopsInTransitScore = getTroopsInTransitScore();
+      positioningScore = 0; //calculatePositioningOfUnitsScore();
+      troopsInTransitScore = 0; //getTroopsInTransitScore();
       troopsConvergenceScore = getTroopConvergenceScore();
-      distanceBetweenFactoryScore = getDistanceBetweenFactoryScore();
+      distanceBetweenFactoryScore = 0; //getDistanceBetweenFactoryScore();
       
       energy = 0
           + (UNIT_SCORE_MULT * unitScore) 
@@ -127,6 +127,7 @@ public class AGSolution {
           + (DISTANCE_MULT * distanceBetweenFactoryScore)
           ; 
       
+      // information about score
       message = "e("+f.format(energy)+")"
                 +" units("+f.format(unitScore)+")"
                 +" bomb("+f.format(bombRemainingScore)+")"
@@ -136,7 +137,8 @@ public class AGSolution {
                 +" troop("+f.format(troopsInTransitScore)+")"
                 ;
       // debug
-      //message = " prod: "+me.production+" / "+opp.production; 
+      //message = " prod: "+me.production+" / "+opp.production;
+      message =" ?";
     }
   }
 
@@ -227,31 +229,32 @@ public class AGSolution {
     double score = 0;
     
     for (Factory factory : GameState.factories) {
-      if (factory.isMe()) {
-        if (factory.unitsInTransit[1] > factory.units) {
-          // don't take credit for this one, it's under attack
-        } else {
-          Factory closestEnemyFactory = factory.getClosestEnemyFactory();
-          if (closestEnemyFactory != null) {
-            int localDistance = factory.getDistanceTo(closestEnemyFactory);
+      if (!factory.isMe()) continue;
 
-            minDistance = Math.min(minDistance, localDistance);
-            unitCount += factory.units;
-            
-            score += 1.0*factory.units / minDistance;
-          }
+      if (factory.isUnderAttack && factory.unitsNeededCount > 0) {
+        // don't take credit for this one, it's under attack and need help
+      } else {
+        Factory closestEnemyFactory = factory.getClosestEnemyFactory();
+        if (closestEnemyFactory != null) {
+          int localDistance = factory.getDistanceTo(closestEnemyFactory);
+
+          minDistance = Math.min(minDistance, localDistance);
+          unitCount += factory.unitsDisposable;
+
+          score += factory.unitsDisposable / localDistance;
         }
       }
     }
     if (unitCount ==0) {
       return 0;
     }
-    double biggestScore = 1.0*unitCount / minDistance;
-    double local = (1.0-score) / biggestScore; // score is inverse of what a good number is, so (1.0 - score)
-    if (Double.isInfinite(local)) {
-      throw new RuntimeException("biggestScore="+biggestScore+" / unitCount="+unitCount + " / minDistance="+minDistance+" / score="+score);
+    // what would be the best score ==> all units in the factory nearer than enemy
+    double bestScore = 1.0 * unitCount / minDistance;
+    if (bestScore == 0) {
+      return 0;
+    } else {
+      return score / bestScore;
     }
-    return  local;
   }
   
   private double updateFactoriesInfluence() {

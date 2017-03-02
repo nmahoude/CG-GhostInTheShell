@@ -202,4 +202,21 @@ public class Factory extends Entity {
     }
     return closest;
   }
+  
+  public Factory getClosestAlliedFront() {
+    int minDistance = 1_000_000;
+    Factory closestFactory = null;
+    
+    for (Factory factory : GameState.factories) {
+      if (factory.owner != this.owner) continue;
+      if (!factory.isFront) continue;
+      
+      int distance = factory.getDistanceTo(this);
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestFactory = factory;
+      }
+    }
+    return closestFactory;
+  }
 }

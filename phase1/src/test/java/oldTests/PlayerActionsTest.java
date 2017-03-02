@@ -1,11 +1,9 @@
 package oldTests;
 
-import java.util.Random;
-
 import org.junit.Test;
 
 import gitc.GameState;
-import gitc.Player;
+import gitc.ag.AGPool;
 import gitc.situations.BB;
 import gitc.situations.FB;
 import gitc.situations.GameBuilder;
@@ -48,6 +46,6 @@ public class PlayerActionsTest {
         .withBomb(new BB().id(0).player(0).from(1).to(2).turnsLeft(5))
         .build();
     
-      Player.getPossibleActions(new Random());
+      AGPool.getPossibleActions();
     }
 }
