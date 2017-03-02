@@ -31,10 +31,6 @@ import gitc.simulation.actions.UpgradeAction;
  * 
  * @author nmahoude
  *
- * TODO : nombre d'units en transit
- * TODO : nombre d'units static
- * 
- * TODO : Influence
  */
 public class Player {
   private static Scanner in;

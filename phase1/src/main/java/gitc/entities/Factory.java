@@ -131,7 +131,7 @@ public class Factory extends Entity {
   }
   
   public int neededUnit() {
-    int neededUnits = unitsInTransit[GameState.opp.id]-this.units;
+    int neededUnits = unitsInTransit[GameState.opp.id] - this.units;
     return neededUnits <= 0 ? 0 : neededUnits;
   }
   
@@ -147,31 +147,25 @@ public class Factory extends Entity {
   
   public void calculateFront() {
     if (owner == null) {
-      distanceToFront = 0;
       isFront = false;
       return;
     }
-    
     isFront = true;
-    distanceToFront = 0;
-    
     if (unitsInTransit[owner.getEnemy().id] > 0) {
-      return; // combat is coming, we are not the back of the army anymore
+      // combat is coming, we are not the back of the army anymore
+      return;
     }
-    
     Factory closestOpp = getClosestEnemyFactory();
     if (closestOpp == null) {
       return;
     }
-    int distanceToClosestEnemy =  this.getDistanceTo(closestOpp);
+    int distanceToClosest = this.getDistanceTo(closestOpp);
     // find  a closest 
-    for (Factory myOtherFactory : GameState.factories) {
-      if (myOtherFactory.isMe() && myOtherFactory != this 
-          && myOtherFactory.getDistanceTo(closestOpp) < distanceToClosestEnemy) {
-        int distanceToMyFactory = this.getDistanceTo(myOtherFactory);
-        if (distanceToMyFactory < myOtherFactory.getDistanceTo(closestOpp)) {
-          isFront = false; // find a closest factory to enemy, we consider we are at the back
-          distanceToFront = distanceToMyFactory; /* TODO ce n'est pas la distance la plus courte ! */
+    for (Factory factory : GameState.factories) {
+      if (factory.isMe() && factory != this && factory.getDistanceTo(closestOpp) < distanceToClosest) {
+        if (this.getDistanceTo(factory) < factory.getDistanceTo(closestOpp)) {
+          // find a closest factory to enemy, we consider we are at the back
+          isFront = false;
           return;
         }
       }
