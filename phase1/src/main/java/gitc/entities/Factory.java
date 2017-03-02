@@ -4,12 +4,22 @@ import java.util.List;
 import java.util.Scanner;
 
 import gitc.GameState;
+import gitc.ag.AGSolution;
 
 public class Factory extends Entity {
-  public int[] distances; 
-  public int[] unitsReadyToFight  = { 0, 0 };
-  public boolean isFront;
+  // game constant
+  public int[] distances;
   
+  // turn constant (no need to backup)
+  public int[] unitsReadyToFight  = { 0, 0 };
+  public int[] future = new int[AGSolution.SIMULATION_DEPTH];
+  public boolean isFront;
+  public int unitsNeededCount;
+  public int unitsNeededAt;
+  public int unitsDisposable;
+  public boolean isUnderAttack;
+
+  // simulation variables (need to backup)
   public int units;
   public int productionRate; // 0->3
   public int disabled = 0;
@@ -150,21 +160,26 @@ public class Factory extends Entity {
       isFront = false;
       return;
     }
+
     isFront = true;
-    if (unitsInTransit[owner.getEnemy().id] > 0) {
+    isUnderAttack = unitsInTransit[owner.getEnemy().id] > 0;
+    if (isUnderAttack) {
       // combat is coming, we are not the back of the army anymore
       return;
     }
+
     Factory closestOpp = getClosestEnemyFactory();
     if (closestOpp == null) {
       return;
     }
     int distanceToClosest = this.getDistanceTo(closestOpp);
-    // find  a closest 
+    // find  a closest Ally planet
     for (Factory factory : GameState.factories) {
-      if (factory.isMe() && factory != this && factory.getDistanceTo(closestOpp) < distanceToClosest) {
+      if (factory == this) continue; // don't check ourself
+      
+      if (factory.owner == this.owner && factory.getDistanceTo(closestOpp) < distanceToClosest) {
+        // check that we are not on the other 'side' of the oppFactory
         if (this.getDistanceTo(factory) < factory.getDistanceTo(closestOpp)) {
-          // find a closest factory to enemy, we consider we are at the back
           isFront = false;
           return;
         }
