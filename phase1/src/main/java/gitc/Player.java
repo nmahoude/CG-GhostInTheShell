@@ -156,7 +156,7 @@ public class Player {
       
       if (factory.isMe()) {
         // upgrade
-        if (!factory.isFront && factory.units >= 10 && factory.productionRate < 3) {
+        if (!factory.isFront && factory.unitsNeededAt==0 && factory.units >= 10 && factory.productionRate < 3) {
           actions.add(new UpgradeAction(factory));
         }
         // move : add some possible move actions
@@ -164,17 +164,26 @@ public class Player {
           for (Factory otherFactory : GameState.factories) {
             if (otherFactory != factory) {
               // front attacks
-              if (factory.isFront && !otherFactory.isMe()) {
-                actions.add(new MoveAction(factory, otherFactory, 1 + random.nextInt(factory.units)));
-              }
-              // back send troops to front
-              if (!factory.isFront && otherFactory.isFront && otherFactory.isMe()) {
-                int units = 1+random.nextInt(factory.units);
-                // check if we can upgrade
-                if (factory.productionRate < 3 && factory.disabled == 0) {
-                  units = Math.min(Math.max(factory.units-10, 0), units);
+              if (factory.isFront) {
+                // attack other front
+                if (!otherFactory.isMe() /*&& otherFactory.isFront*/) {
+                  int units = 1 + random.nextInt(factory.units);
+                  actions.add(new MoveAction(factory, otherFactory, units));
                 }
-                actions.add(new MoveAction(factory, otherFactory, units));
+              }
+
+              // Back troops
+              if ((!factory.isFront && factory.unitsDisposable>0) ) {
+                // back send troops to front
+                if (otherFactory.isFront && otherFactory.isMe()) {
+                  int units = 1+random.nextInt(factory.units);
+//                  // check if we can upgrade
+//                  if (factory.productionRate < 3 && factory.disabled == 0) {
+//                    units = Math.min(Math.max(factory.units-10, 0), units);
+//                  }
+                  actions.add(new MoveAction(factory, otherFactory, units));
+                }
+                
               }
             }
           }

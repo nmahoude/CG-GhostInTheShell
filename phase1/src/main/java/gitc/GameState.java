@@ -7,20 +7,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
+import gitc.ag.AGSolution;
 import gitc.entities.Bomb;
 import gitc.entities.EntityType;
 import gitc.entities.Factory;
 import gitc.entities.Owner;
 import gitc.entities.Troop;
+import gitc.simulation.Simulation;
 
 public class GameState {
   public static boolean TDD_OUPUT = false;
+  public static boolean FACTORY_FUTURE_OUPUT = true;
+  
   List<String> inputSetupBackup = new ArrayList<>();
   List<String> inputBackup = new ArrayList<>();
 
   public static final Owner me = new Owner(0);
   public static final Owner opp = new Owner(1);
-  
   
   public int factoryCount;
   public static Factory[] factories;
@@ -121,6 +124,87 @@ public class GameState {
 
     preTurnUpdate();
     backupState();
+    updateFuture();
+  }
+
+  private void updateFuture() {
+    AGSolution dummy = new AGSolution();
+    
+    me.totalDisposable = 0;
+    opp.totalDisposable = 0;
+    
+    Simulation simulation = new Simulation(this);
+    simulation.prepareSimulation();
+    for (int turn = 0; turn < AGSolution.SIMULATION_DEPTH; turn++) {
+      simulation.simulate(dummy, turn);
+      for (Factory factory : factories) {
+        factory.future[turn] = factory.units * (factory.owner == me ? 1 : -1);
+      }
+    }
+    
+    dummy.calculateHeuristic(simulation);
+    
+    simulation.restoreGameState();
+    
+    /**
+     * calculate the needed units and when
+     */
+    for (Factory factory : factories) {
+      factory.unitsNeededCount = 0;
+      factory.unitsNeededAt = 0;
+      factory.unitsDisposable = factory.units;
+
+      int mult = 1;
+      if (factory.isNeutral()) { 
+        continue;
+      }
+      if (factory.isOpponent())  {
+        mult = -1;
+      }
+      for (int turn = 0;turn<AGSolution.SIMULATION_DEPTH;turn++) {
+        factory.unitsDisposable = Math.min(factory.unitsDisposable, mult*factory.future[turn]);
+        if (factory.unitsNeededAt == 0 && mult*factory.future[turn] < 0) {
+          factory.unitsNeededCount = -mult*factory.future[turn];
+          factory.unitsNeededAt = turn+1;
+        }
+      }        
+    }    
+    for (Factory factory : factories) {
+      if (!factory.isNeutral() && factory.unitsDisposable > 0) {
+        factory.owner.totalDisposable +=factory.unitsDisposable ;
+      }
+    }
+    
+    if (FACTORY_FUTURE_OUPUT) {
+      System.err.println("Dummy simulation score : "+dummy.energy);
+      System.err.println("Future :");
+  
+      String title = String.format("%4s", " ")+" ";
+      for (int turn = 0;turn<AGSolution.SIMULATION_DEPTH;turn++) {
+        title+=String.format("%4d",turn+1);
+      }
+      System.err.println(title);
+      for (Factory factory : factories) {
+        String output = ""+String.format("%4d", factory.id)+" ";
+        for (int turn = 0;turn<AGSolution.SIMULATION_DEPTH;turn++) {
+          output+=String.format("%4d",factory.future[turn]);
+        }
+        System.err.println(output);
+      }
+  
+      // disposable / needed
+      for (Factory factory : factories) {
+        if (factory.isNeutral()) continue;
+        String who = ""+ (factory.isMe() ? "Me  " : 
+                                           "Op ");
+        String front = ""+(factory.isFront ? " (F) " : " (B) ");
+        if (factory.unitsDisposable >= 0) {
+          System.err.println(who+front+factory.id+" -clear  "+factory.unitsDisposable);
+        } else {
+          System.err.println(who+front+factory.id+" -uAtt   "+factory.unitsNeededCount+" at "+factory.unitsNeededAt);
+        }
+      }
+    }
   }
 
   private void preTurnUpdate() {

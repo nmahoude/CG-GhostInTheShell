@@ -31,12 +31,9 @@ public class Simulation {
     this.state = state;
   }
 
+  
   public void simulate(AGSolution solution) {
-    troops.clear();
-    troops.addAll(state.getTroops());
-    
-    bombs.clear();
-    bombs.addAll(state.getBombs());
+    prepareSimulation();
     
     for (int turn = 0; turn < AGSolution.SIMULATION_DEPTH; turn++) {
       simulate(solution, turn);
@@ -44,7 +41,21 @@ public class Simulation {
     
     solution.calculateHeuristic(this);
     
+    restoreGameState();
+  }
+
+
+  public void restoreGameState() {
     state.restoreState();
+  }
+
+
+  public void prepareSimulation() {
+    troops.clear();
+    troops.addAll(state.getTroops());
+    
+    bombs.clear();
+    bombs.addAll(state.getBombs());
   }
 
   public void simulate(AGSolution solution, int turnIndex) {

@@ -9,6 +9,7 @@ public class Owner {
 
   public int id;
   public int bombsLeft = 2;
+  public int totalDisposable;
 
   public Owner getEnemy() {
     return id == 0 ? GameState.opp : GameState.me;
