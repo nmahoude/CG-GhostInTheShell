@@ -163,18 +163,30 @@ public class Player {
         if (factory.units > 0) {
           for (Factory otherFactory : GameState.factories) {
             if (otherFactory != factory) {
-              // front attacks
-              if (factory.isFront && !otherFactory.isMe()) {
-                actions.add(new MoveAction(factory, otherFactory, 1 + random.nextInt(factory.units)));
-              }
-              // back send troops to front
-              if (!factory.isFront && otherFactory.isFront && otherFactory.isMe()) {
-                int units = 1+random.nextInt(factory.units);
-                // check if we can upgrade
-                if (factory.productionRate < 3 && factory.disabled == 0) {
-                  units = Math.min(Math.max(factory.units-10, 0), units);
+              /* -------------
+              // front Moves
+              // -------------*/
+              if (factory.isFront) {
+                // attack front ennemy or neutrals
+                if (!otherFactory.isMe() 
+                    && otherFactory.isFront || otherFactory.isNeutral()) {
+                  actions.add(new MoveAction(factory, otherFactory, 1 + random.nextInt(factory.units)));
                 }
-                actions.add(new MoveAction(factory, otherFactory, units));
+              }
+              
+              /* ------------------------
+              // back Moves
+              // -------------------------*/
+              if (!factory.isFront) {
+                // move troops to front
+                if ( otherFactory.isFront && otherFactory.isMe()) {
+                  int units = 1+random.nextInt(factory.units);
+                  // check if we can upgrade
+                  if (factory.productionRate < 3 && factory.disabled == 0) {
+                    units = Math.min(Math.max(factory.units-10, 0), units);
+                  }
+                  actions.add(new MoveAction(factory, otherFactory, units));
+                }
               }
             }
           }
