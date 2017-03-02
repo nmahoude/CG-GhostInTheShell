@@ -10,7 +10,7 @@ import gitc.simulation.Simulation;
 import gitc.simulation.actions.Action;
 
 public class AGSolution {
-  public static final int SIMULATION_DEPTH = 10; // 11 or + for the upgrade to activate
+  public static int SIMULATION_DEPTH = 10; // 11 or + for the upgrade to activate
   public static DecimalFormat f = new DecimalFormat("#####.00");
 
   public double energy = 0;
@@ -126,7 +126,6 @@ public class AGSolution {
           + (TROOP_CONVERGENCE_MULT * troopsConvergenceScore)
           + (DISTANCE_MULT * distanceBetweenFactoryScore)
           ; 
-      
       message = "e("+f.format(energy)+")"
                 +" units("+f.format(unitScore)+")"
                 +" bomb("+f.format(bombRemainingScore)+")"
@@ -137,6 +136,8 @@ public class AGSolution {
                 ;
       // debug
       //message = " prod: "+me.production+" / "+opp.production; 
+      // prod
+      message = "Où vais-je aller ?! Le réseau est si vaste...";
     }
   }
 
@@ -275,5 +276,9 @@ public class AGSolution {
       }
     }
     return distance;
+  }
+
+  public static void updateHorizon(int maxDistanceForHorizon) {
+    SIMULATION_DEPTH = maxDistanceForHorizon;
   }
 }

@@ -31,6 +31,14 @@ public class Simulation {
     this.state = state;
   }
 
+  public void simulateCalculateAndRestore(AGSolution solution) {
+    simulate(solution);
+    
+    solution.calculateHeuristic(this);
+    
+    state.restoreState();
+  }
+
   public void simulate(AGSolution solution) {
     troops.clear();
     troops.addAll(state.getTroops());
@@ -41,10 +49,6 @@ public class Simulation {
     for (int turn = 0; turn < AGSolution.SIMULATION_DEPTH; turn++) {
       simulate(solution, turn);
     }
-    
-    solution.calculateHeuristic(this);
-    
-    state.restoreState();
   }
 
   public void simulate(AGSolution solution, int turnIndex) {

@@ -81,7 +81,7 @@ public class AG {
         solution.copy(base);
         solution.randomizeLastMove(); // TODO instead of randomize BEST_RANDOM_SIZE, it's maybe possible to try all ?
         
-        simulation.simulate(solution);
+        simulation.simulateCalculateAndRestore(solution);
         if (solution.energy > tempBestEnergy) {
           tempBest = solution;
           tempBestEnergy = solution.energy;
@@ -92,7 +92,7 @@ public class AG {
     while (poolIndex < parameters.POOL_SIZE) {
       AGSolution solution = pool[poolIndex++];
       solution.randomize(); // TODO 1st generation, no best than randomize ?
-      simulation.simulate(solution);
+      simulation.simulateCalculateAndRestore(solution);
 
       if (solution.energy > tempBestEnergy) {
         tempBest = solution;
@@ -113,7 +113,7 @@ public class AG {
       AGSolution solution = newPool[poolIndex++];
       solution.copy(best);
       solution.mutate(); // force mutation
-      simulation.simulate(solution);
+      simulation.simulateCalculateAndRestore(solution);
       if (solution.energy > tempBestEnergy) {
         tempBest = solution;
         tempBestEnergy = solution.energy;
@@ -124,7 +124,7 @@ public class AG {
     while (poolIndex < parameters.POOL_SIZE && thereIsStillTime()) {
       AGSolution solution = newPool[poolIndex++];
       merge2SolutionsFromPool(solution, pool);
-      simulation.simulate(solution);
+      simulation.simulateCalculateAndRestore(solution);
       if (solution.energy > tempBestEnergy) {
         tempBest = solution;
         tempBestEnergy = solution.energy;

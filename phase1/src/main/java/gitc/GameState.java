@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
+import gitc.ag.AGSolution;
 import gitc.entities.Bomb;
 import gitc.entities.EntityType;
 import gitc.entities.Factory;
@@ -53,7 +54,9 @@ public class GameState {
       
       inputSetupBackup.add(".l(new LB().from("+factory1+").to("+factory2+").d("+distance+").build())");
     }
-    setupTddOutput();
+    if (TDD_OUPUT) {
+      setupTddOutput();
+    }
   }
   
   public void read(Scanner in) {
@@ -119,13 +122,34 @@ public class GameState {
       tddOuput();
     }
 
-    preTurnUpdate();
     backupState();
+    preTurnUpdate();
   }
 
   private void preTurnUpdate() {
     updateFactoryInfluence();
     updateFactoryFront();
+    updateFactoryDanger();
+  }
+
+  /**
+   * For each own factory, calculate if we have enough units to sustain incomming enemy
+   */
+  private void updateFactoryDanger() {
+    AGSolution dummy = new AGSolution();
+    Player.simulation.simulate(dummy);
+    for (Factory factory : factories) {
+      if (factory.owner != factory.b_owner && factory.b_owner == me) {
+        // I will lost this factory
+        factory.danger = true;
+        factory.lostUnits = factory.units;
+      } else {
+        factory.danger = false;
+        factory.lostUnits = 0;
+      }
+    }
+
+    restoreState();
   }
 
   private void updateFactoryFront() {

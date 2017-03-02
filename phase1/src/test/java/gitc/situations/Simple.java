@@ -27,11 +27,11 @@ public class Simple {
       .build();
     
     AGSolution solution1 = new AGSolution("WAIT");
-    Player.simulation.simulate(solution1);
+    Player.simulation.simulateCalculateAndRestore(solution1);
     
     AGSolution solution2 = new AGSolution("MOVE");
     solution2.players.get(0).addAction(new MoveAction(GameState.factories[0], GameState.factories[1], 50), 0);
-    Player.simulation.simulate(solution2);
+    Player.simulation.simulateCalculateAndRestore(solution2);
     
     assertThat(solution2.energy > solution1.energy, is(true));
   }

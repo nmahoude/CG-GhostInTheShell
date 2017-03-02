@@ -66,7 +66,7 @@ public class Player_AG_phase0 {
       getFactoriesStatus(myFactoriesUnderAttack, oppFactoriesUnderAttack, myFactoriesSupplier);
 
       AGSolution agNoMoves = new AGSolution(); // no actions
-      simulation.simulate(agNoMoves);
+      simulation.simulateCalculateAndRestore(agNoMoves);
       System.err.println("ag energy (no move): " + agNoMoves.energy);
 
       AGSolution bestAG = null;
@@ -135,7 +135,7 @@ public class Player_AG_phase0 {
             }
           }
         }
-        simulation.simulate(agRand);
+        simulation.simulateCalculateAndRestore(agRand);
         if (bestAG == null || agRand.energy > bestAG.energy) {
           bestAG = agRand;
         }

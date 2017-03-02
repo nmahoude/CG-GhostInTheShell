@@ -6,10 +6,14 @@ import java.util.Scanner;
 import gitc.GameState;
 
 public class Factory extends Entity {
+  // no backup
   public int[] distances; 
   public int[] unitsReadyToFight  = { 0, 0 };
   public boolean isFront;
-  
+  public boolean danger;
+  public int lostUnits;
+
+  // backuped attributes
   public int units;
   public int productionRate; // 0->3
   public int disabled = 0;

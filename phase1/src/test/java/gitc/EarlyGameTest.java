@@ -56,11 +56,11 @@ public class EarlyGameTest {
     
     AGSolution solution1 = new AGSolution("ATT 8");
     solution1.players.get(0).addAction(new MoveAction(GameState.factories[1], GameState.factories[8], 15), 0);
-    Player.simulation.simulate(solution1);
+    Player.simulation.simulateCalculateAndRestore(solution1);
     
     AGSolution solution2 = new AGSolution("ATT 3");
     solution2.players.get(0).addAction(new MoveAction(GameState.factories[1], GameState.factories[3], 15), 0);
-    Player.simulation.simulate(solution2);
+    Player.simulation.simulateCalculateAndRestore(solution2);
     
     AGSolutionComparator.compare(solution1, solution2);
     assertThat(solution2.energy > solution1.energy, is(true));

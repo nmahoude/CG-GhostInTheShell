@@ -62,11 +62,11 @@ public class FactoryUpgradeTest {
     .build();
     
     AGSolution solution1 = new AGSolution("WAIT");
-    Player.simulation.simulate(solution1);
+    Player.simulation.simulateCalculateAndRestore(solution1);
     
     AGSolution solution2 = new AGSolution("MOVE");
     solution2.players.get(0).addAction(new MoveAction(GameState.factories[5], GameState.factories[0], 15), 0);
-    Player.simulation.simulate(solution2);
+    Player.simulation.simulateCalculateAndRestore(solution2);
     
     AGSolutionComparator.compare(solution1, solution2);
     assertThat(solution2.energy > solution1.energy, is(true));

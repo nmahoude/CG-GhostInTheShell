@@ -105,7 +105,7 @@ public class Player {
         output+="BOMB "+myBase.id+" "+oppSideFactories.get(i).id+";";
       }
     }
-    output+="MSG KNAPSACK";
+    output+="MSG Let's go";
     System.out.println(output);
   }
 
@@ -135,7 +135,7 @@ public class Player {
           }
         }
       }
-      simulation.simulate(agRand);
+      simulation.simulateCalculateAndRestore(agRand);
       if (bestAG == null || agRand.energy > bestAG.energy) {
         bestAG = agRand;
       }
@@ -171,14 +171,24 @@ public class Player {
               if (factory.isFront && !otherFactory.isMe()) {
                 actions.add(new MoveAction(factory, otherFactory, 1 + random.nextInt(factory.units)));
               }
-              // back send troops to front
-              if (!factory.isFront && otherFactory.isFront && otherFactory.isMe()) {
-                int units = 1+random.nextInt(factory.units);
-                // check if we can upgrade
-                if (factory.productionRate < 3 && factory.disabled == 0) {
-                  units = Math.min(Math.max(factory.units-10, 0), units);
+              
+              // back send troops to front, maybe by channeling through other back factory
+              if (!factory.isFront && otherFactory.isMe()) {
+                boolean sendToOtherFactory = false;
+                if (!otherFactory.isFront && otherFactory.distanceToFront < factory.distanceToFront) {
+                  sendToOtherFactory = true;
                 }
-                actions.add(new MoveAction(factory, otherFactory, units));
+                if (otherFactory.isFront) {
+                  sendToOtherFactory = true;
+                }
+                if (sendToOtherFactory) {
+                  int units = 1+random.nextInt(factory.units);
+                  // check if we can upgrade
+                  if (factory.productionRate < 3 && factory.disabled == 0) {
+                    units = Math.min(Math.max(factory.units-10, 0), units);
+                  }
+                  actions.add(new MoveAction(factory, otherFactory, units));
+                }
               }
             }
           }

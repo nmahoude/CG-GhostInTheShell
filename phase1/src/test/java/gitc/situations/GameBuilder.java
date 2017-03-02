@@ -32,6 +32,8 @@ public class GameBuilder {
   public GameState build() {
     GameState.TDD_OUPUT = false;
     GameState state = new GameState();
+    Player.gameState = state;
+    Player.simulation = new Simulation(state);
     
     /** SETUP */
     String input = ""+factories.size() +" "+links.size() +" \n";
@@ -53,8 +55,6 @@ public class GameBuilder {
     }
     state.read(new Scanner(input));
     
-    Player.gameState = state;
-    Player.simulation = new Simulation(state);
 
     return state;
   }
