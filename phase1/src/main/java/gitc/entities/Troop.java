@@ -26,7 +26,7 @@ public class Troop extends MovableEntity {
     remainingTurns = in.nextInt();
   }
   public String tddOutput() {
-      return ".withTroop(new TB()."
+      return ".t(new TB()."
               +"id("+id+")."
               +"player("+playerId+")."
               +"from("+source.id+")."

@@ -85,16 +85,25 @@ public class Player {
     KnapSack.fillPackage(myBase.units, mySideFactories, optimalChoice, mySideFactories.size());
     
     String output = "";
+    int usedUnits = 0;
     for (Factory factory : optimalChoice) {
-      output+="MOVE "+myBase.id+" "+factory.id+" "+(factory.units+1)+";";
+      int neededUnits = factory.units+1;
+      output+="MOVE "+myBase.id+" "+factory.id+" "+neededUnits+";";
+      usedUnits+=neededUnits;
     }
+    
+    // check if we can upgrade now
+    if (myBase.units - usedUnits >=10 && myBase.getDistanceTo(oppBase) > 10) {
+      output+="INC "+myBase.id+";";
+    }
+    
     oppSideFactories.sort(new Comparator<Factory>() {
       public int compare(Factory f1, Factory f2) {
         return Integer.compare(f2.productionRate, f1.productionRate);
       };
     });
 
-    for (int i=0;i<2;i++) {
+    for (int i=0;i<1;i++) {
       if (oppSideFactories.get(i).productionRate == 3) {
         output+="BOMB "+myBase.id+" "+oppSideFactories.get(i).id+";";
       }
@@ -110,7 +119,7 @@ public class Player {
     while (System.nanoTime() - start < NANOSECONDS_THINK_TIME) {
       simulations++;
       AGSolution solution;
-      if (random.nextInt(100) == 0) { /* TODO try to find a good value 100 -> 75 GOLD le jeudi soir*/
+      if (random.nextInt(30) == 0) { /* TODO try to find a good value 100 -> 75 GOLD le jeudi soir*/
         solution = AGPool.createRandom();
       } else {
         solution = AGPool.cross();
@@ -121,10 +130,30 @@ public class Player {
       
     }
     AGSolution bestAG = AGPool.getBest();
+    
     if ( bestAG == null) {
+      System.err.println("No best AG ??");
       System.out.println("WAIT");
     } else {
-      System.out.println(bestAG.output()+";MSG "+simulations);
+      String attackSupplementaire="";
+      for (Factory factory : GameState.factories) {
+        if (factory.isMe() && factory.units > GameState.units[1]) {
+          boolean attackDone = false;
+          for(Factory opponent : GameState.factories) {
+            if (opponent.isOpponent()) {
+              if (!attackDone) {
+                attackDone = true;
+                //attack but check we keep enough units
+                int units = factory.units - GameState.units[1] - 1;
+                if (units > 0) {
+                   attackSupplementaire = "MOVE "+factory.id+" "+opponent.id+" "+units+";";
+                }
+              }
+            }
+          }
+        }
+      }
+      System.out.println(attackSupplementaire+ bestAG.output()+";MSG "+simulations);
     }
     //System.err.println("Simulation took : " + (int)((endSim - start)/1_000_000) + " ms for " + simulations + " simulations");
     cleanUp();

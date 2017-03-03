@@ -125,7 +125,7 @@ public class Factory extends Entity {
   }
 
   public String tddOutput() {
-    return ".withFactory(new FB().id("+id+").player("+playerId+").units("+units+").prod("+productionRate+").disabled("+disabled+").build())";
+    return ".f(new FB().id("+id+").player("+playerId+").units("+units+").prod("+productionRate+").disabled("+disabled+").build())";
   }
 
   public void addTroop(Troop troop) {

@@ -17,7 +17,7 @@ import gitc.simulation.actions.UpgradeAction;
 
 public class AGPool {
 //  private static Random random = new Random(System.nanoTime());
-  private static Random random = new Random();
+  public static Random random = new Random();
   private static final int AG_POOL = 10;
   AGSolution[] solutions = new AGSolution[AG_POOL];
   
@@ -128,89 +128,148 @@ public class AGPool {
       possibleActions.put(factory.id, actions);
       
       if (factory.isMe()) {
-        // upgrade
-        if (!factory.isFront && factory.units >= 10 && factory.productionRate < 3) {
-          actions.add(new UpgradeAction(factory));
-        }
-        // move : add some possible move actions
-        if (factory.units > 0) {
-          if (!factory.isFront) {
-          for (Factory otherFactory : GameState.factories) {
-            if (otherFactory != factory) {
+        getPossibleActionsForFactory(factory, actions);
+      }
+    }
+    return possibleActions;
+  }
 
-              /* ------------------------
-              // back Moves
-              // -------------------------*/
-              int action = actions.size();
-              // move troops to front
-              if ( otherFactory.isFront && otherFactory.isMe()) {
-                int units = 1+random.nextInt(factory.units);
-                // check if we can upgrade
-//                if (factory.productionRate < 3 && factory.disabled == 0) {
-//                  units = Math.min(Math.max(factory.units-10, 0), units);
-//                }
-                actions.add(new MoveAction(factory, otherFactory, units));
-              }
-              if (!otherFactory.isFront && otherFactory.isMe()) {
-                if (otherFactory.getDistanceTo(factory) < 6) {
-                  int units = 1+random.nextInt(factory.units);
-                  if (factory.productionRate < 3 && factory.disabled == 0) {
-                    units = Math.min(Math.max(factory.units-10, 0), units);
-                  }
-                  actions.add(new MoveAction(factory, otherFactory, units));
-                }
-              }
-              if (factory.id == 3) {
-                System.err.println("Actions added for Fac 3: "+(actions.size()-action));
-              }
-              }
-            }
-          }
-          
-          /* -------------
-          // front Moves
-          // -------------*/
-          
-          if (factory.isFront) {
-          for (Factory otherFactory : GameState.factories) {
-            if (otherFactory != factory) {
-                boolean attack = true;
-                for (Factory isNear : GameState.factories) {
-                  if (isNear.isOpponent() && isNear.getDistanceTo(factory) < factory.getDistanceTo(otherFactory)) {
-                    attack = false;
-                  }
-                }
-                if (attack) {
-                  // attack front ennemy or neutrals
-                  MoveAction action = null;
-                  if (!otherFactory.isMe() 
-                      && otherFactory.isFront || otherFactory.isNeutral()) {
-                    action = new MoveAction(factory, otherFactory, 1 + random.nextInt(factory.units));
-                  }
-                  if (otherFactory.isMe() && otherFactory.isFront) {
-                    action = new MoveAction(factory, otherFactory, 1 + random.nextInt(factory.units));
-                  }
-                  if (action != null) {
-                    if (bombWillNotDestroyOurTroops(action)) {
-                      actions.add(action);
-                    }
-                  }
-                }
-              }
-            }
-          }
+  public static void getPossibleActionsForFactory(Factory factory, List<Action> actions) {
+    // upgrade
+    if (factory.productionRate < 3) {
+      boolean canUpgrade = true;
+      for (int units : factory.future) {
+        if (units <= 10) {
+          canUpgrade = false;
         }
-        // bomb
-        if (GameState.me.bombsLeft > 0) {
-          for (Factory otherFactory : GameState.factories) {
-            if (otherFactory.isOpponent() && !otherFactory.bombIncomming && otherFactory.productionRate > 1) {
-              actions.add(new BombAction(factory, otherFactory));
+      }
+      if (canUpgrade && GameState.center != factory) {
+        actions.add(new UpgradeAction(factory));
+      }
+    }
+    // move : add some possible move actions
+    if (factory.units > 0) {
+      if (!factory.isFront) {
+        for (Factory otherFactory : GameState.factories) {
+          if (otherFactory != factory) {
+
+            /* ------------------------
+            // back Moves
+            // -------------------------*/
+            if (otherFactory.isNeutral() && otherFactory.productionRate > 0) {
+              int units = otherFactory.units+1;
+              if (factory.units >= units) {
+                MoveAction action = new MoveAction(factory, otherFactory, units);
+                action = findBetterRouteForMove(action);
+                actions.add(action);
+              }
+            }
+            
+            // move troops to front
+            if ( otherFactory.isFront && otherFactory.isMe()) {
+              int units = factory.units; //1+random.nextInt(factory.units);
+              // check if we can upgrade
+              //                if (factory.productionRate < 3 && factory.disabled == 0) {
+              //                  units = Math.min(Math.max(factory.units-10, 0), units);
+              //                }
+              MoveAction action = new MoveAction(factory, otherFactory, units);
+              action = findBetterRouteForMove(action);
+              actions.add(action);
+            }
+            if (!otherFactory.isFront && otherFactory.isMe()) {
+              if (otherFactory.getDistanceTo(factory) < 6) {
+                int units = 1+random.nextInt(factory.units);
+                if (factory.productionRate < 3 && factory.disabled == 0) {
+                  units = Math.min(Math.max(factory.units-10, 0), units);
+                }
+                MoveAction action = new MoveAction(factory, otherFactory, units);
+                action = findBetterRouteForMove(action);
+                actions.add(action);
+              }
             }
           }
         }
       }
+      
+      /* -------------
+      // front Moves
+      // -------------*/
+      
+      if (factory.isFront) {
+        for (Factory otherFactory : GameState.factories) {
+          if (otherFactory != factory) {
+
+            
+            boolean attack = true;
+            for (Factory isNearer : GameState.factories) {
+              if (isNearer.isOpponent() && isNearer.getDistanceTo(factory) < factory.getDistanceTo(otherFactory)) {
+                attack = false;
+              }
+            }
+            if (attack) {
+              // attack front ennemy or neutrals
+              MoveAction action = null;
+              if ((!otherFactory.isMe() && otherFactory.isFront) 
+                  || otherFactory.isNeutral()) {
+                
+                int unitsToSend = 1 + random.nextInt(factory.units);
+
+                if (otherFactory.isOpponent()) {
+                  // check that we wont send more units than we can defend with !
+                  if (factory.productionRate<=otherFactory.productionRate) {
+                    int remainingUnits = factory.units-unitsToSend;
+                    if (remainingUnits < otherFactory.units) {
+                      unitsToSend = Math.max(0, factory.units - otherFactory.units);
+                    }
+                  }
+                }
+                action = new MoveAction(factory, otherFactory, unitsToSend);
+                addAction(actions, action);
+              }
+              if (otherFactory.isMe() && otherFactory.isFront) {
+                action = new MoveAction(factory, otherFactory, 1 + random.nextInt(factory.units));
+                addAction(actions, action);
+              }
+
+            }
+            
+          }
+        }
+      }
     }
-    return possibleActions;
+    // bomb
+    if (GameState.me.bombsLeft > 0) {
+      for (Factory otherFactory : GameState.factories) {
+        if (otherFactory.isOpponent() && !otherFactory.bombIncomming && otherFactory.productionRate > 1) {
+          actions.add(new BombAction(factory, otherFactory));
+        }
+      }
+    }
+  }
+
+  private static void addAction(List<Action> actions, MoveAction action) {
+    if (action != null) {
+      if (bombWillNotDestroyOurTroops(action)) {
+        action = findBetterRouteForMove(action);
+      }
+      actions.add(action);
+    }
+  }
+
+  private static MoveAction findBetterRouteForMove(MoveAction action) {
+    int distance = action.src.getDistanceTo(action.dst);
+    int minNewDistance = distance;
+    Factory bestFactory = null;
+    
+    for (Factory factory : GameState.factories) {
+      if (factory == action.src || factory == action.dst) continue;
+      if (!factory.isMe()) continue;
+      
+      if (factory.getDistanceTo(action.src) < distance && factory.getDistanceTo(action.dst) < distance) {
+        return new MoveAction(action.src, factory, action.units);
+      }
+    }
+    return action;
   }
 
   private static boolean bombWillNotDestroyOurTroops(MoveAction action) {

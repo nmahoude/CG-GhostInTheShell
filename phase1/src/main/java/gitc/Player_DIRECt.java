@@ -44,8 +44,8 @@ public class Player_DIRECT {
       /*
        * Some debug information
        */
-      System.err.println("My forces : ["+gameState.cyborgs[0] + "/ prod:"+gameState.production[0]+"]" );
-      System.err.println("Op forces : ["+gameState.cyborgs[1] + "/ prod:"+gameState.production[1]+"]" );
+      System.err.println("My forces : ["+gameState.units[0] + "/ prod:"+gameState.production[0]+"]" );
+      System.err.println("Op forces : ["+gameState.units[1] + "/ prod:"+gameState.production[1]+"]" );
 
       /*
        * First iteration : find the best closest factory
@@ -132,7 +132,7 @@ public class Player_DIRECT {
         for (Factory factory : gameState.getFactories()) {
           if (factory.isOpponent() 
               && ( (turn == 0 && factory.productionRate >= 2) 
-              || factory.units > gameState.cyborgsTotal / (gameState.factoryCount * 2))
+              || factory.units > gameState.unitsTotal / (gameState.factoryCount * 2))
               ) {
             toBomb = factory;
           }

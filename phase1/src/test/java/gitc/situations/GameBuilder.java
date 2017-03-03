@@ -2,10 +2,12 @@ package gitc.situations;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.Scanner;
 
 import gitc.GameState;
 import gitc.Player;
+import gitc.ag.AGPool;
 import gitc.simulation.Simulation;
 
 public class GameBuilder {
@@ -14,7 +16,7 @@ public class GameBuilder {
   List<TB> troops = new ArrayList<>();
   List<BB> bombs = new ArrayList<>();
   
-  public GameBuilder withFactory(FB factory) {
+  public GameBuilder f(FB factory) {
     factories.add(factory);
     return this;
   }
@@ -24,12 +26,13 @@ public class GameBuilder {
     return this;
   }
   
-  public GameBuilder withTroop(TB troop) {
+  public GameBuilder t(TB troop) {
     troops.add(troop);
     return this;
   }
 
   public GameState build() {
+    AGPool.random = new Random(System.nanoTime());
     GameState.TDD_OUPUT = false;
     GameState state = new GameState();
     

@@ -17,4 +17,9 @@ public class MoveAction extends Action {
   public String output() {
     return "MOVE "+src.id+" "+dst.id+" "+units;
   }
+  
+  @Override
+  public String toString() {
+    return "Move ("+src.id+")->("+dst.id+") with "+units+" u";
+  }
 }

@@ -1,19 +1,13 @@
 package gitc.situations;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 
-import java.util.Arrays;
-import java.util.Scanner;
-
-import org.hamcrest.Matcher;
 import org.junit.Test;
 
 import gitc.GameState;
 import gitc.Player;
 import gitc.ag.AGSolution;
-import gitc.ag.AGSolutionComparator;
-import gitc.simulation.Simulation;
 import gitc.simulation.actions.MoveAction;
 
 public class Simple {
@@ -21,9 +15,9 @@ public class Simple {
   @Test
   public void apiBuilding() throws Exception {
     GameState state = new GameBuilder()
-      .withFactory(new FB().id(0).mine().units(50).prod(0).build())
-      .withFactory(new FB().id(1).opp().units(25).prod(0).build())
-      .l(new LB().from(0).to(1).d(2).build())
+      .f(new FB().id(0).mine().units(50).prod(0).build())
+      .f(new FB().id(1).opp().units(25).prod(0).build())
+      .l(new LB().f(0).t(1).d(2).b())
       .build();
     
     AGSolution solution1 = new AGSolution("WAIT");

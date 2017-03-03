@@ -36,6 +36,7 @@ public class AGSolution {
 
 
   public AGSolution() {
+    energy = -1_000_000;
     players.add(new AGPlayer(GameState.me));
     players.add(new AGPlayer(GameState.opp));
   }
@@ -84,8 +85,8 @@ public class AGSolution {
     return output;
   }
 
-  public static final double UNIT_SCORE_MULT = 1.0;
-  public static final double PRODUCTION_SCORE_MULT = 3.0;
+  public static final double UNIT_SCORE_MULT = 5.0;
+  public static final double PRODUCTION_SCORE_MULT = 5.0;
   public static final double INFLUENCE_MULT = 0.1;
   public static final double BOMB_MULT = 0.0;
   public static final double FACTORY_COUNT_MULT = 1.0;
@@ -108,10 +109,10 @@ public class AGSolution {
       unitScore = getUnitsCountScore();
       productionScore = getProductionScore();
       influenceScore = updateFactoriesInfluence();
-      bombRemainingScore = 0; //getBombRemainingScore();
+      bombRemainingScore = getBombRemainingScore();
       factoryCountScore = getFactoryCountScore();
-      positioningScore = 0; //calculatePositioningOfUnitsScore();
-      troopsInTransitScore = 0; //getTroopsInTransitScore();
+      positioningScore = calculatePositioningOfUnitsScore();
+      troopsInTransitScore = getTroopsInTransitScore();
       troopsConvergenceScore = getTroopConvergenceScore();
       distanceBetweenFactoryScore = 0; //getDistanceBetweenFactoryScore();
       
@@ -127,7 +128,7 @@ public class AGSolution {
           + (DISTANCE_MULT * distanceBetweenFactoryScore)
           ; 
       if (opp.dead) {
-        energy += 100;
+        energy += 1_000;
       }
       // information about score
       message = "e("+f.format(energy)+")"
@@ -140,7 +141,7 @@ public class AGSolution {
                 ;
       // debug
       //message = " prod: "+me.production+" / "+opp.production;
-      message =" ?";
+      //message =" ?";
     }
   }
 

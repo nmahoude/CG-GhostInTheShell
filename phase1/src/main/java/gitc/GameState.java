@@ -18,7 +18,8 @@ import gitc.simulation.Simulation;
 public class GameState {
   public static boolean TDD_OUPUT = false;
   public static boolean FACTORY_FUTURE_OUPUT = true;
-
+  public static boolean FRONT_BACK_OUTPUT = true;
+  
   List<String> inputSetupBackup = new ArrayList<>();
   List<String> inputBackup = new ArrayList<>();
 
@@ -27,14 +28,20 @@ public class GameState {
   
   
   public int factoryCount;
+  
+  
+  public static Factory myInitialBase;
+  public static Factory oppInitialBase;
+  public static Factory center;
+  
   public static Factory[] factories;
   public static Factory unkownFactory = new Factory(0, 1);
   public static List<Troop> troops = new ArrayList<>();
   public static Map<Integer, Bomb> bombs = new HashMap<>();
   
-  public int cyborgs[] = new int[2];
+  public static int units[] = new int[2];
   public int production[] = new int [2];
-  public int cyborgsTotal;
+  public int unitsTotal;
   private int entityCount;
   
   public void readSetup(Scanner in) {
@@ -55,11 +62,30 @@ public class GameState {
       factories[factory1].setupDistance(factories[factory2], distance);
       factories[factory2].setupDistance(factories[factory1], distance);
       
-      inputSetupBackup.add(".l(new LB().from("+factory1+").to("+factory2+").d("+distance+").build())");
+      inputSetupBackup.add(".l(new LB().f("+factory1+").t("+factory2+").d("+distance+").b())");
     }
+ 
     setupTddOutput();
   }
   
+  private void calculateCenterOfMap() {
+    for (Factory factory : factories) {
+      if (factory.isMe()) {
+        myInitialBase = factory;
+      }
+      if (factory.isOpponent()) {
+        oppInitialBase = factory;
+      }
+    }
+    
+    for (Factory factory : factories) {
+      if (factory.getDistanceTo(myInitialBase) == factory.getDistanceTo(oppInitialBase)) {
+        center = factory;
+      }
+    }    
+    
+  }
+
   public void read(Scanner in) {
     inputBackup.clear();
     
@@ -84,7 +110,7 @@ public class GameState {
           factory.read(in);
           if (factory.owner != null) {
             production[factory.owner.id]+=factory.productionRate;
-            cyborgs[factory.owner.id]+=factory.units;
+            units[factory.owner.id]+=factory.units;
           }
           if (TDD_OUPUT) {
             inputBackup.add(factories[entityId].tddOutput());
@@ -94,7 +120,7 @@ public class GameState {
           Troop troop = new Troop(troopId);
           troop.read(in);
           troop.affectToFactory(factories);
-          cyborgs[troop.owner.id]+=troop.units;
+          units[troop.owner.id]+=troop.units;
           troops.add(troop);
           if (TDD_OUPUT) {
             inputBackup.add(troop.tddOutput());
@@ -118,10 +144,13 @@ public class GameState {
         }
     }
 
+    if (Player.turn == 0) {
+      calculateCenterOfMap();
+    }
     // replace bombs
     bombs = newBombs;
     
-    cyborgsTotal = cyborgs[0] + cyborgs[1];
+    unitsTotal = units[0] + units[1];
     
     if (TDD_OUPUT) {
       tddOuput();
@@ -257,8 +286,8 @@ public class GameState {
   }
 
   private void clearRound() {
-    cyborgsTotal = 0;
-    cyborgs[0] = cyborgs[1] = 0;
+    unitsTotal = 0;
+    units[0] = units[1] = 0;
     production[0] = production[1] = 0;
     for (Factory factory : factories) {
       factory.clear();
@@ -277,6 +306,7 @@ public class GameState {
       i++;
       System.err.print(setupLine);
       if (i % 10 == 0) {
+        System.err.println("");
       }
     }
     System.err.println("");

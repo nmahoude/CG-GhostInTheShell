@@ -39,8 +39,8 @@ public class Player_WAIT {
       /*
        * Some debug information
        */
-      System.err.println("My forces : ["+gameState.cyborgs[0] + "/ prod:"+gameState.production[0]+"]" );
-      System.err.println("Op forces : ["+gameState.cyborgs[1] + "/ prod:"+gameState.production[1]+"]" );
+      System.err.println("My forces : ["+gameState.units[0] + "/ prod:"+gameState.production[0]+"]" );
+      System.err.println("Op forces : ["+gameState.units[1] + "/ prod:"+gameState.production[1]+"]" );
 
       /*
        * WAIT

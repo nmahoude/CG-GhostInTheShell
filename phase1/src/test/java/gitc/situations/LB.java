@@ -6,12 +6,12 @@ public class LB {
   int dstId;
   int distance;
 
-  public LB from(int srcId) {
+  public LB f(int srcId) {
     this.srcId = srcId;
     return this;
   }
 
-  public LB to(int dstId) {
+  public LB t(int dstId) {
     this.dstId = dstId;
     return this;
   }
@@ -21,7 +21,7 @@ public class LB {
     return this;
   }
 
-  public LB build() {
+  public LB b() {
     return this;
   }
 

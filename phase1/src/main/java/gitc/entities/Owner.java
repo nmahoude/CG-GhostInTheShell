@@ -9,6 +9,7 @@ public class Owner {
 
   public int id;
   public int bombsLeft = 2;
+  public int unitCount=0;
   public int totalDisposable;
 
   public Owner getEnemy() {
