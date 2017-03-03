@@ -138,11 +138,23 @@ public class AGPool {
     // upgrade
     if (factory.productionRate < 3) {
       boolean canUpgrade = true;
+      // check if we are under attack in the future and loosing 10 units is bad
       for (int units : factory.future) {
         if (units <= 10) {
           canUpgrade = false;
         }
       }
+      // check if our front needs this 10 units now more than more units in the future
+      int frontNeededUnits = 0;
+      for (Factory myFront : GameState.factories) {
+        if (myFront.isFront && myFront.isMe()) {
+          frontNeededUnits += myFront.unitsNeededCount;
+        }
+      }
+      if (frontNeededUnits > 0) {
+        canUpgrade = false;
+      }
+      
       if (canUpgrade && GameState.center != factory) {
         actions.add(new UpgradeAction(factory));
       }
@@ -176,17 +188,17 @@ public class AGPool {
               action = findBetterRouteForMove(action);
               actions.add(action);
             }
-            if (!otherFactory.isFront && otherFactory.isMe()) {
-              if (otherFactory.getDistanceTo(factory) < 6) {
-                int units = 1+random.nextInt(factory.units);
-                if (factory.productionRate < 3 && factory.disabled == 0) {
-                  units = Math.min(Math.max(factory.units-10, 0), units);
-                }
-                MoveAction action = new MoveAction(factory, otherFactory, units);
-                action = findBetterRouteForMove(action);
-                actions.add(action);
-              }
-            }
+//            if (!otherFactory.isFront && otherFactory.isMe()) {
+//              if (otherFactory.getDistanceTo(factory) < 6) {
+//                int units = 1+random.nextInt(factory.units);
+//                if (factory.productionRate < 3 && factory.disabled == 0) {
+//                  units = Math.min(Math.max(factory.units-10, 0), units);
+//                }
+//                MoveAction action = new MoveAction(factory, otherFactory, units);
+//                action = findBetterRouteForMove(action);
+//                actions.add(action);
+//              }
+//            }
           }
         }
       }
@@ -215,8 +227,8 @@ public class AGPool {
                 int unitsToSend = 1 + random.nextInt(factory.units);
 
                 if (otherFactory.isOpponent()) {
-                  // check that we wont send more units than we can defend with !
-                  if (factory.productionRate<=otherFactory.productionRate) {
+                  if (factory.productionRate>=otherFactory.productionRate) {
+                    // check that we wont send more units than we can defend with !
                     int remainingUnits = factory.units-unitsToSend;
                     if (remainingUnits < otherFactory.units) {
                       unitsToSend = Math.max(0, factory.units - otherFactory.units);
