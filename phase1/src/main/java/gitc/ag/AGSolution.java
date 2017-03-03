@@ -85,8 +85,8 @@ public class AGSolution {
     return output;
   }
 
-  public static final double UNIT_SCORE_MULT = 4.0;
-  public static final double PRODUCTION_SCORE_MULT = 4.0;
+  public static final double UNIT_SCORE_MULT = 6.0;
+  public static final double PRODUCTION_SCORE_MULT = 6.0;
   public static final double INFLUENCE_MULT = 0.1;
   public static final double BOMB_MULT = 0.0;
   public static final double FACTORY_COUNT_MULT = 1.0;
