@@ -110,7 +110,7 @@ public class Player {
     while (System.nanoTime() - start < NANOSECONDS_THINK_TIME) {
       simulations++;
       AGSolution solution;
-      if (random.nextInt(100) == 0) {
+      if (random.nextInt(100) == 0) { /* TODO try to find a good value 100 -> 75 GOLD le jeudi soir*/
         solution = AGPool.createRandom();
       } else {
         solution = AGPool.cross();
