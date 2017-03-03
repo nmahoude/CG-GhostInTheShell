@@ -25,20 +25,16 @@ public class GameState {
 
   public static final Owner me = new Owner(0);
   public static final Owner opp = new Owner(1);
-  
-  
   public int factoryCount;
-  
-  
   public static Factory myInitialBase;
   public static Factory oppInitialBase;
   public static Factory center;
-  
   public static Factory[] factories;
   public static Factory unkownFactory = new Factory(0, 1);
+
+  
   public static List<Troop> troops = new ArrayList<>();
   public static Map<Integer, Bomb> bombs = new HashMap<>();
-  
   public static int units[] = new int[2];
   public int production[] = new int [2];
   public int unitsTotal;
@@ -95,10 +91,6 @@ public class GameState {
     // ** INIT PLAYER START */
     Player.start = System.nanoTime();
 
-    
-    int troopCount = entityCount-factoryCount;
-    troops.clear();
-
     Map<Integer, Bomb> newBombs = new HashMap<>();
 
     for (int i = 0; i < entityCount; i++) {
@@ -129,6 +121,7 @@ public class GameState {
           Bomb bomb = bombs.get(entityId);
           if (bomb == null) {
             bomb = new Bomb(entityId);
+            bomb.destination = GameState.unkownFactory;
             bomb.read(in);
             if (bomb.destination != unkownFactory) {
               bomb.destination.bombIncomming = true;
@@ -267,6 +260,7 @@ public class GameState {
     if (myOnlyFactory != null) {
       bomb.destination = myOnlyFactory;
       bomb.remainingTurns = myOnlyFactory.getDistanceTo(bomb.source);
+      System.err.println("Found what the bomb will attack ("+myOnlyFactory.id+")");
     } else {
     }
   }
@@ -286,6 +280,11 @@ public class GameState {
   }
 
   private void clearRound() {
+    troops.clear();
+    // don't clear bombs, we use persistence on them
+    // bombs.clear();
+
+    entityCount = 0;
     unitsTotal = 0;
     units[0] = units[1] = 0;
     production[0] = production[1] = 0;

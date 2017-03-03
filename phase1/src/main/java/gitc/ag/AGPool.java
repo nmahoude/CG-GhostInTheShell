@@ -164,10 +164,10 @@ public class AGPool {
       if (!factory.isFront) {
         for (Factory otherFactory : GameState.factories) {
           if (otherFactory != factory) {
-
             /* ------------------------
             // back Moves
             // -------------------------*/
+            // Attack des neutrals
             if (otherFactory.isNeutral() && otherFactory.productionRate > 0) {
               int units = otherFactory.units+1;
               if (factory.units >= units) {
@@ -263,8 +263,8 @@ public class AGPool {
     if (action != null) {
       if (bombWillNotDestroyOurTroops(action)) {
         action = findBetterRouteForMove(action);
+        actions.add(action);
       }
-      actions.add(action);
     }
   }
 
@@ -286,7 +286,7 @@ public class AGPool {
 
   private static boolean bombWillNotDestroyOurTroops(MoveAction action) {
     // check for a bomb that would destroy our army !
-    boolean doAction = true;;
+    boolean doAction = true;
     for (Bomb bomb : GameState.bombs.values()) {
       if (bomb.destination == action.dst && bomb.remainingTurns >= action.dst.getDistanceTo(action.src)) {
         doAction = false;
