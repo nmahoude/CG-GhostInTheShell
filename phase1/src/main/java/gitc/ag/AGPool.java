@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.Random;
 
 import gitc.GameState;
-import gitc.Player;
 import gitc.entities.Factory;
 import gitc.simulation.actions.Action;
 import gitc.simulation.actions.BombAction;
@@ -46,11 +45,50 @@ public class AGPool {
         }
       }
     }
-
-    Player.simulation.simulate(solution);
-    
-    propose(solution);
     return solution;
+  }
+  
+  public AGSolution cross() {
+    int index1 = findIndex(solutions, -1);
+    int index2 = findIndex(solutions, index1);
+    
+    return cross(solutions[index1], solutions[index2]);
+  }
+
+  int findIndex(AGSolution[] pool, int otherThanIndex) {
+    int aIndex, bIndex;
+    do {
+      aIndex = random.nextInt(AG_POOL);
+    } while (aIndex == otherThanIndex);
+
+    for (int i=0;i<3;i++) {
+      do {
+        bIndex = random.nextInt(AG_POOL);
+      } while (bIndex == aIndex || bIndex == otherThanIndex);
+      
+      aIndex = pool[aIndex].energy > pool[bIndex].energy ? aIndex : bIndex;
+    }
+    return aIndex;
+  }
+  
+  public AGSolution cross(AGSolution ag1, AGSolution ag2) {
+    AGSolution newSolution = new AGSolution();
+    TurnAction newActions = newSolution.players.get(0).turnActions[0];
+    
+    TurnAction a1 = ag1.players.get(0).turnActions[0];
+    TurnAction a2 = ag2.players.get(0).turnActions[0];
+    for (Action action : a1.actions) {
+      if (random.nextBoolean()) {
+        newActions.actions.add(action);
+      }      
+    }
+    for (Action action : a2.actions) {
+      if (random.nextBoolean()) {
+        newActions.actions.add(action);
+      }      
+    }
+    
+    return newSolution;
   }
   
   public void propose(AGSolution newSolution) {
@@ -142,5 +180,4 @@ public class AGPool {
       solutions[i] = new AGSolution();
     }
   }
-
 }

@@ -109,7 +109,16 @@ public class Player {
     AGPool.reset();
     while (System.nanoTime() - start < NANOSECONDS_THINK_TIME) {
       simulations++;
-      AGSolution agRand = AGPool.createRandom();
+      AGSolution solution;
+      if (random.nextInt(100) == 0) {
+        solution = AGPool.createRandom();
+      } else {
+        solution = AGPool.cross();
+      }
+      
+      simulation.simulate(solution);
+      AGPool.propose(solution);
+      
     }
     AGSolution bestAG = AGPool.getBest();
     if ( bestAG == null) {
