@@ -126,7 +126,9 @@ public class AGSolution {
           + (TROOP_CONVERGENCE_MULT * troopsConvergenceScore)
           + (DISTANCE_MULT * distanceBetweenFactoryScore)
           ; 
-      
+      if (opp.dead) {
+        energy += 100;
+      }
       // information about score
       message = "e("+f.format(energy)+")"
                 +" units("+f.format(unitScore)+")"

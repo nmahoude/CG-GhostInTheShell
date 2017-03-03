@@ -17,7 +17,7 @@ import gitc.simulation.Simulation;
 
 public class GameState {
   public static boolean TDD_OUPUT = false;
-  public static boolean FACTORY_FUTURE_OUPUT = false;
+  public static boolean FACTORY_FUTURE_OUPUT = true;
 
   List<String> inputSetupBackup = new ArrayList<>();
   List<String> inputBackup = new ArrayList<>();
@@ -29,8 +29,8 @@ public class GameState {
   public int factoryCount;
   public static Factory[] factories;
   public static Factory unkownFactory = new Factory(0, 1);
-  public List<Troop> troops = new ArrayList<>();
-  public Map<Integer, Bomb> bombs = new HashMap<>();
+  public static List<Troop> troops = new ArrayList<>();
+  public static Map<Integer, Bomb> bombs = new HashMap<>();
   
   public int cyborgs[] = new int[2];
   public int production[] = new int [2];
