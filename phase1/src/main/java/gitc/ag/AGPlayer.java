@@ -9,16 +9,16 @@ public class AGPlayer {
   public int remainingBombs = 2;
   
   // part of scoring
-  public int units;
-  public int production;
-  public boolean dead;
+  public int units = 0;
+  public int production = 0;
+  public boolean dead = false;
   
   public AGPlayer(Owner owner) {
     this.owner = owner;
     remainingBombs = owner.bombsLeft;
     for (int i=0;i<AGSolution.SIMULATION_DEPTH;i++) {
       turnActions[i] = new TurnAction();
-    }
+    }      
   }
   
   public void addAction(Action action, int turn) {

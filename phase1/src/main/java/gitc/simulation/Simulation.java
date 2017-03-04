@@ -177,48 +177,47 @@ public class Simulation {
   private void executeOrders(AGSolution solution, int turnIndex) {
     for (AGPlayer player : solution.players) {
       TurnAction tAction = player.turnActions[turnIndex];
-      // Send bombs
-      
+
       for (Action action : tAction.actions) {
-        if (action.type != ActionType.BOMB) continue;
-        BombAction bombAction = (BombAction)action;
-        int distance = bombAction.src.getDistanceTo(bombAction.dst);
-        Bomb bomb = new Bomb(player.owner, bombAction.src, bombAction.dst, distance);
-        if (player.remainingBombs > 0 && bomb.findWithSameRouteInList(newBombs) == null) {
-          newBombs.add(bomb);
-          bombs.add(bomb);
-          player.remainingBombs--;
-        }
-      }
-
-      // Send troops
-      for (Action action : tAction.actions) {
-        if (action.type != ActionType.MOVE) continue;
-        MoveAction moveAction = (MoveAction)action;
-        int unitsToMove = Math.min(moveAction.src.units, moveAction.units);
-        Troop troop = new Troop(player.owner, moveAction.src, moveAction.dst, unitsToMove);
-
-        // forbid same route bombs & units
-        if (unitsToMove > 0 && troop.findWithSameRouteInList(newBombs) == null) { 
-          moveAction.src.units -= unitsToMove;
-
-          Troop other = troop.findWithSameRouteInList(newTroops);
-          if (other != null) {
-            other.units += unitsToMove;
-          } else {
-            troops.add(troop);
-            newTroops.add(troop);
+        // Send bombs
+        if (action.type == ActionType.BOMB) {
+          BombAction bombAction = (BombAction)action;
+          int distance = bombAction.src.getDistanceTo(bombAction.dst);
+          Bomb bomb = new Bomb(player.owner, bombAction.src, bombAction.dst, distance);
+          if (player.remainingBombs > 0 && bomb.findWithSameRouteInList(newBombs) == null) {
+            newBombs.add(bomb);
+            bombs.add(bomb);
+            player.remainingBombs--;
           }
         }
-      }
+        
+        // Send troops
+        if (action.type == ActionType.MOVE) {
+          MoveAction moveAction = (MoveAction)action;
+          int unitsToMove = Math.min(moveAction.src.units, moveAction.units);
+          Troop troop = new Troop(player.owner, moveAction.src, moveAction.dst, unitsToMove);
 
-      // Increase
-      for (Action action : tAction.actions) {
-        if (action.type != ActionType.UPGRADE) continue;
-        UpgradeAction incAction = (UpgradeAction)action;
-        if (incAction.src.units >= COST_INCREASE_PRODUCTION && incAction.src.productionRate < MAX_PRODUCTION_RATE) {
-          incAction.src.productionRate++;
-          incAction.src.units -= COST_INCREASE_PRODUCTION;
+          // forbid same route bombs & units
+          if (unitsToMove > 0 && troop.findWithSameRouteInList(newBombs) == null) { 
+            moveAction.src.units -= unitsToMove;
+
+            Troop other = troop.findWithSameRouteInList(newTroops);
+            if (other != null) {
+              other.units += unitsToMove;
+            } else {
+              troops.add(troop);
+              newTroops.add(troop);
+            }
+          }
+        }
+
+        // Increase
+        if (action.type == ActionType.UPGRADE) {
+          UpgradeAction incAction = (UpgradeAction)action;
+          if (incAction.src.units >= COST_INCREASE_PRODUCTION && incAction.src.productionRate < MAX_PRODUCTION_RATE) {
+            incAction.src.productionRate++;
+            incAction.src.units -= COST_INCREASE_PRODUCTION;
+          }
         }
       }
     }
