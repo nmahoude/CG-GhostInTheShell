@@ -136,37 +136,16 @@ public class AGPool {
 
   public static void getPossibleActionsForFactory(Factory factory, List<Action> actions) {
     // upgrade
-    if (factory.productionRate < 3) {
-      boolean canUpgrade = true;
-      // check if we are under attack in the future and loosing 10 units is bad
-      for (int units : factory.future) {
-        if (units <= 10) {
-          canUpgrade = false;
-        }
-      }
-      // check if our front needs this 10 units now more than more units in the future
-      int frontNeededUnits = 0;
-      for (Factory myFront : GameState.factories) {
-        if (myFront.isFront && myFront.isMe()) {
-          frontNeededUnits += myFront.unitsNeededCount;
-        }
-      }
-      if (frontNeededUnits > 0) {
-        canUpgrade = false;
-      }
-      
-      if (canUpgrade && GameState.center != factory) {
-        actions.add(new UpgradeAction(factory));
-      }
-    }
+    addPotentialUpgradeAction(factory, actions);
+    
     // move : add some possible move actions
     if (factory.units > 0) {
       if (!factory.isFront) {
-        for (Factory otherFactory : GameState.factories) {
-          if (otherFactory != factory) {
-            /* ------------------------
+        /* ------------------------
             // back Moves
             // -------------------------*/
+        for (Factory otherFactory : GameState.factories) {
+          if (otherFactory != factory) {
             // Attack des neutrals
             if (otherFactory.isNeutral() && otherFactory.productionRate > 0) {
               int units = otherFactory.units+1;
@@ -206,7 +185,6 @@ public class AGPool {
       /* -------------
       // front Moves
       // -------------*/
-      
       if (factory.isFront) {
         for (Factory otherFactory : GameState.factories) {
           if (otherFactory != factory) {
@@ -222,7 +200,7 @@ public class AGPool {
               // attack front ennemy or neutrals
               MoveAction action = null;
               if ((!otherFactory.isMe() && otherFactory.isFront) 
-                  || otherFactory.isNeutral()) {
+                  || (otherFactory.isNeutral() && !inDeepEnnemyTerritory(factory, otherFactory))) {
                 
                 int unitsToSend = 1 + random.nextInt(factory.units);
 
@@ -249,7 +227,7 @@ public class AGPool {
         }
       }
     }
-    // bomb
+    // bombs
     if (GameState.me.bombsLeft > 0) {
       for (Factory otherFactory : GameState.factories) {
         if (otherFactory.isOpponent() && !otherFactory.bombIncomming && otherFactory.productionRate > 1) {
@@ -257,6 +235,49 @@ public class AGPool {
         }
       }
     }
+  }
+
+  private static void addPotentialUpgradeAction(Factory factory, List<Action> actions) {
+    if (factory.productionRate < 3) {
+      boolean canUpgrade = true;
+      // check if we are under attack in the future and loosing 10 units is bad
+      for (int units : factory.future) {
+        if (units <= 10) {
+          canUpgrade = false;
+        }
+      }
+      // check if our front needs this 10 units now more than more units in the future
+      int frontNeededUnits = 0;
+      for (Factory myFront : GameState.factories) {
+        if (myFront.isFront && myFront.isMe()) {
+          frontNeededUnits += myFront.unitsNeededCount;
+        }
+      }
+      if (frontNeededUnits > 0) {
+        canUpgrade = false;
+      }
+      
+      if (canUpgrade && GameState.center != factory) {
+        actions.add(new UpgradeAction(factory));
+      }
+    }
+  }
+
+  /**
+   * check if a factory is not in deep ennemy territory
+   * @param factory
+   * @param otherFactory
+   * @return
+   */
+  private static boolean inDeepEnnemyTerritory(Factory mine, Factory target) {
+    int numberOfFactory = 0;
+    int distanceTo = mine.getDistanceTo(target);
+    for (Factory testEnnemy : GameState.oppFactories) {
+      if (testEnnemy.getDistanceTo(target) < distanceTo && distanceTo > mine.getDistanceTo(testEnnemy) ) {
+        numberOfFactory++;
+      }
+    }
+    return numberOfFactory > 0;
   }
 
   private static void addAction(List<Action> actions, MoveAction action) {

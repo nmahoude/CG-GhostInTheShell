@@ -31,6 +31,9 @@ public class GameState {
   public static Factory center;
   public static Factory[] factories;
   public static Factory unkownFactory = new Factory(0, 1);
+  public static Factory[] myFactories;
+  public static Factory[] oppFactories;
+  public static Factory[] neutralFactories;
 
   
   public static List<Troop> troops = new ArrayList<>();
@@ -255,8 +258,27 @@ public class GameState {
   }
 
   private void preTurnUpdate() {
+    updateFactoryHelpers();
     updateFactoryInfluence();
     updateFactoryFront();
+  }
+
+  private void updateFactoryHelpers() {
+    List<Factory> mine = new ArrayList<>();
+    List<Factory> opp = new ArrayList<>();
+    List<Factory> neutral = new ArrayList<>();
+    for (Factory factory : factories) {
+      if (factory.isMe()) {
+        mine.add(factory);
+      } else if (factory.isOpponent()) {
+        opp.add(factory); 
+      } else {
+        neutral.add(factory);
+      }
+    }
+    myFactories = mine.toArray(new Factory[0]);
+    oppFactories = opp.toArray(new Factory[0]);
+    neutralFactories = neutral.toArray(new Factory[0]);
   }
 
   private void updateFactoryFront() {
