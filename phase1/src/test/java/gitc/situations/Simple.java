@@ -24,7 +24,7 @@ public class Simple {
     Player.simulation.simulate(solution1);
     
     AGSolution solution2 = new AGSolution("MOVE");
-    solution2.players.get(0).addAction(new MoveAction(GameState.factories[0], GameState.factories[1], 50), 0);
+    solution2.players[0].addAction(new MoveAction(GameState.factories[0], GameState.factories[1], 50), 0);
     Player.simulation.simulate(solution2);
     
     assertThat(solution2.energy > solution1.energy, is(true));

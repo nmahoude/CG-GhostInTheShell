@@ -62,7 +62,7 @@ public class DontDoWhatIExpectTest {
   
   for (Action action : actions) {
     AGSolution solution = new AGSolution();
-    solution.players.get(0).addAction(action, 0);
+    solution.players[0].addAction(action, 0);
     Player.simulation.simulate(solution);
     solutions.add(solution);
   }

@@ -62,7 +62,7 @@ public class FactoryUpgradeTest {
     Player.simulation.simulate(solution1);
     
     AGSolution solution2 = new AGSolution("MOVE");
-    solution2.players.get(0).addAction(new MoveAction(GameState.factories[5], GameState.factories[0], 15), 0);
+    solution2.players[0].addAction(new MoveAction(GameState.factories[5], GameState.factories[0], 15), 0);
     Player.simulation.simulate(solution2);
     
     AGSolutionComparator.compare(solution1, solution2);

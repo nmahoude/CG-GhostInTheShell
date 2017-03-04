@@ -42,7 +42,7 @@ public class AGPool {
         Collections.shuffle(actions);
         for (int i=0;i<actionNumber;i++) {
           if (random.nextBoolean()) {
-            solution.players.get(0).addAction(actions.get(i), 0);
+            solution.players[0].addAction(actions.get(i), 0);
           }
         }
       }
@@ -75,10 +75,10 @@ public class AGPool {
   
   public AGSolution cross(AGSolution ag1, AGSolution ag2) {
     AGSolution newSolution = new AGSolution();
-    TurnAction newActions = newSolution.players.get(0).turnActions[0];
+    TurnAction newActions = newSolution.players[0].turnActions[0];
     
-    TurnAction a1 = ag1.players.get(0).turnActions[0];
-    TurnAction a2 = ag2.players.get(0).turnActions[0];
+    TurnAction a1 = ag1.players[0].turnActions[0];
+    TurnAction a2 = ag2.players[0].turnActions[0];
     for (Action action : a1.actions) {
       if (random.nextBoolean()) {
         newActions.actions.add(action);

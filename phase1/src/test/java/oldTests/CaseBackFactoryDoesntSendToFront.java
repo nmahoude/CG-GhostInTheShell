@@ -144,7 +144,7 @@ public class CaseBackFactoryDoesntSendToFront {
     Player.simulation.simulate(solution1);
 
     AGSolution solution2 = new AGSolution("MOVE");
-    solution2.players.get(0).addAction(new MoveAction(GameState.factories[7], GameState.factories[2], 60), 0);
+    solution2.players[0].addAction(new MoveAction(GameState.factories[7], GameState.factories[2], 60), 0);
     Player.simulation.simulate(solution2);
 
     System.out.println("WAIT : " + solution1.energy);

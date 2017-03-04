@@ -1,8 +1,6 @@
 package gitc.ag;
 
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.List;
 
 import gitc.GameState;
 import gitc.Player;
@@ -15,7 +13,7 @@ public class AGSolution {
   public static DecimalFormat f = new DecimalFormat("#####.00");
 
   public double energy = 0;
-  public List<AGPlayer> players = new ArrayList<>();
+  public AGPlayer[] players = new AGPlayer[2];
 
   public String message;
 
@@ -38,8 +36,8 @@ public class AGSolution {
 
   public AGSolution() {
     energy = -1_000_000;
-    players.add(new AGPlayer(GameState.me));
-    players.add(new AGPlayer(GameState.opp));
+    players[0] = new AGPlayer(GameState.me);
+    players[1] = new AGPlayer(GameState.opp);
   }
 
   public AGSolution(String name) {
@@ -73,7 +71,7 @@ public class AGSolution {
 
   public String output() {
     String output = "";
-    TurnAction tAction = players.get(0).turnActions[0];
+    TurnAction tAction = players[0].turnActions[0];
 
     if (tAction.actions.size() == 0) {
       output += "WAIT"+";";
@@ -98,8 +96,8 @@ public class AGSolution {
   
   public void calculateHeuristic(Simulation simulation) {
     this.simulation = simulation;
-    me = players.get(0);
-    opp = players.get(1);
+    me = players[0];
+    opp = players[1];
     
     if (me.dead) {
       energy = -1_000_000;

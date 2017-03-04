@@ -61,30 +61,23 @@ public class Simulation {
     
     moveEntities();
     decreaseFactoriesDisableCoutdown();
-    executeOrders(solution, turnIndex);
+    if (turnIndex == 0 ) { // hack, on ne créé des ordres que pour le tour = 0 !
+      executeOrders(solution, turnIndex);
+    }
     createFactoryUnits();
     solveBattles(solution);
     solveBombs();
 
-    // ---
-    // Update score
-    // ---
-    for (AGPlayer player : solution.players) {
-      player.units = 0;
-      player.production = 0;
-      player.dead = false;
-    }
-    
     for (Factory factory : GameState.factories) {
       if (factory.owner != null) {
-        AGPlayer player = solution.players.get(factory.owner.id);
+        AGPlayer player = solution.players[factory.owner.id];
         player.units += factory.units;
         player.production += factory.productionRate;
       }
     }
     for (Troop troop : troops) {
       if (troop.owner != null) {
-        solution.players.get(troop.owner.id).units += troop.units;
+        solution.players[troop.owner.id].units += troop.units;
       }
     }
 
