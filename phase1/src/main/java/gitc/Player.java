@@ -28,6 +28,8 @@ import gitc.simulation.Simulation;
  *
  */
 public class Player {
+  public static final boolean DEBUG = false;
+
   private static Random random = new Random();
 
   private static Scanner in;

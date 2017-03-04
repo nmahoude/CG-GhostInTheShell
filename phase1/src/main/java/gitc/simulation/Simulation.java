@@ -116,14 +116,10 @@ public class Simulation {
     }
   }
 
+  // ---
+  // Solve battles
+  // ---
   private void solveBattles(AGSolution solution) {
-    // ---
-    // Solve battles
-    // ---
-    for (Factory factory : GameState.factories) {
-      factory.unitsReadyToFight[0] = factory.unitsReadyToFight[1] = 0;
-    }
-
     for (Iterator<Troop> it = troops.iterator(); it.hasNext();) {
       Troop troop = it.next();
       if (troop.remainingTurns <= 0) {

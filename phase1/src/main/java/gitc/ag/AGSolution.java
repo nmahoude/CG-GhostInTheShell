@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import gitc.GameState;
+import gitc.Player;
 import gitc.entities.Factory;
 import gitc.simulation.Simulation;
 import gitc.simulation.actions.Action;
@@ -131,6 +132,7 @@ public class AGSolution {
         energy += 1_000;
       }
       // information about score
+      if (Player.DEBUG) {
       message = "e("+f.format(energy)+")"
                 +" units("+f.format(unitScore)+")"
                 +" bomb("+f.format(bombRemainingScore)+")"
@@ -139,6 +141,7 @@ public class AGSolution {
                 +" pos("+f.format(positioningScore)+")"
                 +" troop("+f.format(troopsInTransitScore)+")"
                 ;
+      }
       // debug
       //message = " prod: "+me.production+" / "+opp.production;
       //message =" ?";

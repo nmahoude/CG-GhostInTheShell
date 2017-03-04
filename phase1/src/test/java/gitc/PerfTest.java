@@ -2,9 +2,6 @@ package gitc;
 
 import java.util.Scanner;
 
-import org.junit.Ignore;
-import org.junit.Test;
-
 import gitc.simulation.Simulation;
 
 public class PerfTest {
@@ -72,10 +69,11 @@ public class PerfTest {
     state.read(in);
 
     
-    Player.NANOSECONDS_THINK_TIME = 4*1000_000_000L;
+    Player.NANOSECONDS_THINK_TIME = 4*1_000_000_000L;
     Player.gameState = state;
     Player.simulation = new Simulation(state);
 
+    Player.start = System.nanoTime();
     Player.doOneTurn();
     
     System.out.println("Finished");
