@@ -7,7 +7,6 @@ import java.util.List;
 import gitc.GameState;
 import gitc.ag.AGPlayer;
 import gitc.ag.AGSolution;
-import gitc.ag.TurnAction;
 import gitc.entities.Bomb;
 import gitc.entities.Factory;
 import gitc.entities.Owner;
@@ -61,8 +60,12 @@ public class Simulation {
     
     moveEntities();
     decreaseFactoriesDisableCoutdown();
-    if (turnIndex == 0 ) { // hack, on ne créé des ordres que pour le tour = 0 !
-      executeOrders(solution, turnIndex);
+    /**
+    // hack, on ne créé des ordres que pour le tour = 0 !
+     * NE PAS SUPPRIMER SINON ON REJOUE LA MEME ACTION A CHAQUE TOUR
+     */
+    if (turnIndex == 0 ) { 
+      executeOrders(solution);
     }
     createFactoryUnits();
     solveBattles(solution);
@@ -167,11 +170,9 @@ public class Simulation {
     }
   }
 
-  private void executeOrders(AGSolution solution, int turnIndex) {
+  private void executeOrders(AGSolution solution) {
     for (AGPlayer player : solution.players) {
-      TurnAction tAction = player.turnActions[turnIndex];
-
-      for (Action action : tAction.actions) {
+      for (Action action : player.actions) {
         // Send bombs
         if (action.type == ActionType.BOMB) {
           BombAction bombAction = (BombAction)action;

@@ -1,11 +1,15 @@
 package gitc.ag;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import gitc.entities.Owner;
 import gitc.simulation.actions.Action;
 
 public class AGPlayer {
   public final Owner owner;
-  public TurnAction[] turnActions = new TurnAction[AGSolution.SIMULATION_DEPTH];
+  public List<Action> actions = new ArrayList<>();
+  
   public int remainingBombs = 2;
   
   // part of scoring
@@ -16,13 +20,9 @@ public class AGPlayer {
   public AGPlayer(Owner owner) {
     this.owner = owner;
     remainingBombs = owner.bombsLeft;
-    for (int i=0;i<AGSolution.SIMULATION_DEPTH;i++) {
-      turnActions[i] = new TurnAction();
-    }      
   }
   
   public void addAction(Action action, int turn) {
-    TurnAction tAction = turnActions[turn];
-    tAction.actions.add(action);
+    actions.add(action);
   }
 }

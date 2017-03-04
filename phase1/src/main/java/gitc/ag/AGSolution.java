@@ -71,12 +71,11 @@ public class AGSolution {
 
   public String output() {
     String output = "";
-    TurnAction tAction = players[0].turnActions[0];
 
-    if (tAction.actions.size() == 0) {
+    if (players[0].actions.size() == 0) {
       output += "WAIT"+";";
     } else {
-      for (Action action  :tAction.actions) {
+      for (Action action  :players[0].actions) {
         output += action.output()+";";
       }
     }

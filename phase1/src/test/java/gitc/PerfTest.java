@@ -69,7 +69,7 @@ public class PerfTest {
     state.read(in);
 
     
-    Player.NANOSECONDS_THINK_TIME = 4*1_000_000_000L;
+    Player.NANOSECONDS_THINK_TIME = 10*1_000_000_000L;
     Player.gameState = state;
     Player.simulation = new Simulation(state);
 
