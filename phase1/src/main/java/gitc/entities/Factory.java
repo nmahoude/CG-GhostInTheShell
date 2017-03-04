@@ -18,6 +18,7 @@ public class Factory extends Entity {
   public int unitsNeededAt;
   public int unitsDisposable;
   public boolean isUnderAttack;
+  public Factory nearestEnnemyFactory;
 
   // simulation variables (need to backup)
   public int units;
@@ -35,6 +36,7 @@ public class Factory extends Entity {
   public double b_influence;
   public boolean b_bombIncomming;
   public int b_distanceToFront;
+
   
 
   @Override
