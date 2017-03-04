@@ -3,6 +3,7 @@ package gitc;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -103,9 +104,16 @@ public class Player {
       };
     });
 
-    for (int i=0;i<1;i++) {
-      if (oppSideFactories.get(i).productionRate == 3) {
-        output+="BOMB "+myBase.id+" "+oppSideFactories.get(i).id+";";
+    if (oppBase.productionRate == 3) {
+      output+="BOMB "+myBase.id+" "+oppBase.id+";";
+    } else {
+      Optional<Factory> factory = oppSideFactories.stream()
+              .filter(f -> f.productionRate == 3)
+              .sorted((f1, f2) -> Integer.compare(f1.units, f2.units))
+              .findFirst();
+
+      if (factory.isPresent()) {
+        output+="BOMB "+myBase.id+" "+factory.get().id+";";
       }
     }
     output+="MSG KNAPSACK";
