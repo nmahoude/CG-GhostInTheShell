@@ -17,8 +17,8 @@ import gitc.simulation.Simulation;
 
 public class GameState {
   public static boolean TDD_OUPUT = false;
-  public static boolean FACTORY_FUTURE_OUPUT = true;
-  public static boolean FRONT_BACK_OUTPUT = true;
+  public static boolean FACTORY_FUTURE_OUPUT = false;
+  public static boolean FRONT_BACK_OUTPUT = false;
   
   List<String> inputSetupBackup = new ArrayList<>();
   List<String> inputBackup = new ArrayList<>();

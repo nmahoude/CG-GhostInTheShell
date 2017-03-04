@@ -38,7 +38,7 @@ public class AGPool {
     for (Factory factory : GameState.factories) {
       List<Action> actions = possibleActions.get(factory.id);
       if (actions.size() > 0) {
-        int actionNumber = random.nextInt(actions.size());
+        int actionNumber = random.nextInt(1+actions.size());
         Collections.shuffle(actions);
         for (int i=0;i<actionNumber;i++) {
           if (random.nextBoolean()) {
@@ -179,7 +179,7 @@ public class AGPool {
             
             // move troops to front
             if ( otherFactory.isFront && otherFactory.isMe()) {
-              int units = factory.units; //1+random.nextInt(factory.units);
+              int units = 1+random.nextInt(factory.units);
               // check if we can upgrade
               //                if (factory.productionRate < 3 && factory.disabled == 0) {
               //                  units = Math.min(Math.max(factory.units-10, 0), units);
@@ -269,17 +269,31 @@ public class AGPool {
   }
 
   private static MoveAction findBetterRouteForMove(MoveAction action) {
+    // A -> B
     int distance = action.src.getDistanceTo(action.dst);
-    int minNewDistance = distance;
-    Factory bestFactory = null;
+    
+    int nearestDistance = distance;
+    Factory nearestFacory = null;
     
     for (Factory factory : GameState.factories) {
       if (factory == action.src || factory == action.dst) continue;
       if (!factory.isMe()) continue;
       
-      if (factory.getDistanceTo(action.src) < distance && factory.getDistanceTo(action.dst) < distance) {
-        return new MoveAction(action.src, factory, action.units);
+      // A -> Intermediaire -> B
+      int sourceToFactoryDistance = factory.getDistanceTo(action.src);
+      int factoryToDestinationDistance = factory.getDistanceTo(action.dst);
+
+      if (sourceToFactoryDistance < distance 
+          && factoryToDestinationDistance < distance) {
+    
+        if (sourceToFactoryDistance < nearestDistance) {
+          nearestDistance = sourceToFactoryDistance;
+          nearestFacory = factory;
+        }
       }
+    }
+    if (nearestFacory != null) {
+      action = new MoveAction(action.src, nearestFacory, action.units);
     }
     return action;
   }

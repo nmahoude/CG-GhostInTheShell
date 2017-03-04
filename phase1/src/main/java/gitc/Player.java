@@ -135,25 +135,7 @@ public class Player {
       System.err.println("No best AG ??");
       System.out.println("WAIT");
     } else {
-      String attackSupplementaire="";
-      for (Factory factory : GameState.factories) {
-        if (factory.isMe() && factory.units > GameState.units[1]) {
-          boolean attackDone = false;
-          for(Factory opponent : GameState.factories) {
-            if (opponent.isOpponent()) {
-              if (!attackDone) {
-                attackDone = true;
-                //attack but check we keep enough units
-                int units = factory.units - GameState.units[1] - 1;
-                if (units > 0) {
-                   attackSupplementaire = "MOVE "+factory.id+" "+opponent.id+" "+units+";";
-                }
-              }
-            }
-          }
-        }
-      }
-      System.out.println(attackSupplementaire+ bestAG.output()+";MSG "+simulations);
+      System.out.println(bestAG.output()+";MSG "+simulations);
     }
     //System.err.println("Simulation took : " + (int)((endSim - start)/1_000_000) + " ms for " + simulations + " simulations");
     cleanUp();
