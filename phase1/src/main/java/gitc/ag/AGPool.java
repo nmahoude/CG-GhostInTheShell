@@ -246,7 +246,7 @@ public class AGPool {
       //                  units = Math.min(Math.max(factory.units-10, 0), units);
       //                }
       MoveAction action = new MoveAction(factory, otherFactory, units);
-      action = findBetterRouteForMove(action);
+      action = findBetterRouteForMoveForBack(action);
       actions.add(action);
     }
   }
@@ -338,6 +338,41 @@ public class AGPool {
     }
   }
 
+  private static MoveAction findBetterRouteForMoveForBack(MoveAction action) {
+    // A -> B
+    int AtoBDistance = action.src.getDistanceTo(action.dst);
+    
+    int nearestDistance = AtoBDistance;
+    Factory nearestFacory = null;
+    
+    for (Factory factory : GameState.myFactories) {
+      if (factory == action.src || factory == action.dst) continue;
+      
+      if (factory.nearestEnnemyFactory == null || action.dst.nearestEnnemyFactory == null) continue;
+      // Ne pas tester si I est plus eloignée des ennemy que B !
+      if (factory.getDistanceTo(factory.nearestEnnemyFactory) > action.dst.getDistanceTo(action.dst.nearestEnnemyFactory)) {
+        continue;
+      }
+      // A -> I(ntermediaire) -> B
+      int AtoIntermediaireDistance = factory.getDistanceTo(action.src);
+      int IntermedaireToBDistance = factory.getDistanceTo(action.dst);
+
+      if (AtoIntermediaireDistance < AtoBDistance 
+          && IntermedaireToBDistance < AtoBDistance) {
+    
+        if (AtoIntermediaireDistance < nearestDistance) {
+          nearestDistance = AtoIntermediaireDistance;
+          nearestFacory = factory;
+        }
+      }
+    }
+    if (nearestFacory != null) {
+      action = new MoveAction(action.src, nearestFacory, action.units);
+    }
+    return action;
+  }
+
+  
   private static MoveAction findBetterRouteForMove(MoveAction action) {
     // A -> B
     int distance = action.src.getDistanceTo(action.dst);

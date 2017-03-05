@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import gitc.simulation.actions.Action;
+
 public class AGSolutionComparator {
 
   public static AGSolution compare(AGSolution... solutions) {
@@ -30,21 +32,23 @@ public class AGSolutionComparator {
     String positioningScore       = "pos:   ";
     String troopsInTransitScore   = "tInT:  ";
     String troopsConvergenceScore = "tConv: ";
-    String distanceBetweenFactoryScore = "dist: ";
+    String distanceBetweenFactoryScore = "dist:  ";
+    String frontBackScore              = "F/B:   ";
     
     for (AGSolution solution : sortedSolutions) {
       name+=String.format("%1$10s", solution.name);
       energy+=String.format("%1$10f", solution.energy);
       separator+="----------";
-      unitScore+=String.format("%1$10.2f", solution.unitScore);
-      productionScore += String.format("%1$10.2f", solution.productionScore);
-      influenceScore += String.format("%1$10.2f", solution.influenceScore);
-      bombRemainingScore += String.format("%1$10.2f", solution.bombRemainingScore);
-      factoryCountScore += String.format("%1$10.2f", solution.factoryCountScore);
-      positioningScore += String.format("%1$10.2f", solution.positioningScore);
-      troopsInTransitScore += String.format("%1$10.2f", solution.troopsInTransitScore);
-      troopsConvergenceScore += String.format("%1$10.2f", solution.troopsConvergenceScore);
-      distanceBetweenFactoryScore+= String.format("%1$10.2f", solution.distanceBetweenFactoryScore);
+      unitScore+=String.format("%1$10.4f", solution.unitScore);
+      productionScore += String.format("%1$10.4f", solution.productionScore);
+      influenceScore += String.format("%1$10.4f", solution.influenceScore);
+      bombRemainingScore += String.format("%1$10.4f", solution.bombRemainingScore);
+      factoryCountScore += String.format("%1$10.4f", solution.factoryCountScore);
+      positioningScore += String.format("%1$10.4f", solution.positioningScore);
+      troopsInTransitScore += String.format("%1$10.4f", solution.troopsInTransitScore);
+      troopsConvergenceScore += String.format("%1$10.4f", solution.troopsConvergenceScore);
+      distanceBetweenFactoryScore+= String.format("%1$10.4f", solution.distanceBetweenFactoryScore);
+      frontBackScore+=String.format("%1$10.4f", solution.frontBackScore);
     }
     System.err.println(name);
     System.err.println(energy);
@@ -58,7 +62,17 @@ public class AGSolutionComparator {
     System.err.println(troopsInTransitScore);
     System.err.println(troopsConvergenceScore);
     System.err.println(distanceBetweenFactoryScore);
-
+    System.err.println(frontBackScore);
+    
+    int i = 0;
+    for (AGSolution solution : sortedSolutions) {
+      System.err.println("");
+      System.err.println("Solution "+solution.name);
+      System.err.println("------------");
+      for (Action action : solution.players.get(0).turnActions[0].actions) {
+        System.err.println(action);
+      }
+    }
     
     return sortedSolutions.get(0);
   }

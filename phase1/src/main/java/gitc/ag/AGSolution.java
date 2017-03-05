@@ -32,6 +32,8 @@ public class AGSolution {
   public double troopsInTransitScore;
   public double troopsConvergenceScore;
   public double distanceBetweenFactoryScore;
+  public double frontBackScore;
+  
   public String name;
 
 
@@ -115,6 +117,7 @@ public class AGSolution {
       troopsInTransitScore = 0; //getTroopsInTransitScore();
       troopsConvergenceScore = getTroopConvergenceScore();
       distanceBetweenFactoryScore = 0; //getDistanceBetweenFactoryScore();
+      frontBackScore = 0; //getBackScore();
       
       energy = 0
           + (UNIT_SCORE_MULT * unitScore) 
@@ -126,6 +129,7 @@ public class AGSolution {
           + (TROOP_TANSIT_MULT * troopsInTransitScore)
           + (TROOP_CONVERGENCE_MULT * troopsConvergenceScore)
           + (DISTANCE_MULT * distanceBetweenFactoryScore)
+          //+ (0.001 * frontBackScore)
           ; 
       if (opp.dead) {
         energy += 1_000;
@@ -143,6 +147,33 @@ public class AGSolution {
       //message = " prod: "+me.production+" / "+opp.production;
       //message =" ?";
     }
+  }
+
+  private double getBackScore() {
+    int minDist = 1_000_000;
+    int backUnitsCount = 0;
+    double backUnits = 0;
+    
+    for (Factory factory : GameState.myFactories) {
+      if (factory.isFront) {
+      } else {
+        if (factory.nearestEnnemyFactory != null) {
+          int distanceToEnnemy = factory.getDistanceTo(factory.nearestEnnemyFactory);
+          if (minDist > distanceToEnnemy) {
+            minDist = distanceToEnnemy;
+          }
+          backUnitsCount+=factory.units;
+          backUnits+=1.0 * factory.units / distanceToEnnemy;
+        } else {
+          backUnitsCount+=factory.units;
+          backUnits+=factory.units;
+        }
+      }
+    }
+    if (backUnitsCount == 0) {
+      return 0;
+    }
+    return 1.0 * backUnits * (1.0*minDist / backUnitsCount);
   }
 
   private double getDistanceBetweenFactoryScore() {
