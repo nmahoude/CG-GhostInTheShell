@@ -28,8 +28,7 @@ import gitc.simulation.Simulation;
  *
  */
 public class Player {
-  private static final long MILLISECONDS_THINK_TIME = 46;
-  public static long NANOSECONDS_THINK_TIME = 45_000_000;
+  public static long MILLISECONDS_THINK_TIME = 46;
 
   private static Random random = new Random();
 

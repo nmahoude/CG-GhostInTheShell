@@ -100,7 +100,7 @@ public class Factory extends Entity {
     
     // neighbors factory
     for (Factory factory : GameState.factories) {
-      if (factory != this && !factory.isNeutral()) {
+      if (factory != this && factory.owner != null) {
         double local = factory.units / factory.getDistanceTo(this);
         currentUnitsInfluence += (factory.owner == GameState.me ? 1.0 : -1.0) * local;
         totalUnits += Math.abs(local);

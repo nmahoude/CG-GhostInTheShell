@@ -69,11 +69,11 @@ public class Simulation {
     // ---
     // Update score
     // ---
-    for (AGPlayer player : solution.players) {
-      player.units = 0;
-      player.production = 0;
-      player.dead = false;
-    }
+//    for (AGPlayer player : solution.players) {
+//      player.units = 0;
+//      player.production = 0;
+//      player.dead = false;
+//    }
     
     for (Factory factory : GameState.factories) {
       if (factory.owner != null) {

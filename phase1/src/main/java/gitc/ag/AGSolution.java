@@ -109,10 +109,10 @@ public class AGSolution {
       unitScore = getUnitsCountScore();
       productionScore = getProductionScore();
       influenceScore = updateFactoriesInfluence();
-      bombRemainingScore = getBombRemainingScore();
+      bombRemainingScore = 0; //getBombRemainingScore();
       factoryCountScore = getFactoryCountScore();
-      positioningScore = calculatePositioningOfUnitsScore();
-      troopsInTransitScore = getTroopsInTransitScore();
+      positioningScore = 0; //calculatePositioningOfUnitsScore();
+      troopsInTransitScore = 0; //getTroopsInTransitScore();
       troopsConvergenceScore = getTroopConvergenceScore();
       distanceBetweenFactoryScore = 0; //getDistanceBetweenFactoryScore();
       
@@ -131,14 +131,14 @@ public class AGSolution {
         energy += 1_000;
       }
       // information about score
-      message = "e("+f.format(energy)+")"
-                +" units("+f.format(unitScore)+")"
-                +" bomb("+f.format(bombRemainingScore)+")"
-                +" prod("+f.format(productionScore)+")"
-                +" inf("+f.format(influenceScore)+")" 
-                +" pos("+f.format(positioningScore)+")"
-                +" troop("+f.format(troopsInTransitScore)+")"
-                ;
+//      message = "e("+f.format(energy)+")"
+//                +" units("+f.format(unitScore)+")"
+//                +" bomb("+f.format(bombRemainingScore)+")"
+//                +" prod("+f.format(productionScore)+")"
+//                +" inf("+f.format(influenceScore)+")" 
+//                +" pos("+f.format(positioningScore)+")"
+//                +" troop("+f.format(troopsInTransitScore)+")"
+//                ;
       // debug
       //message = " prod: "+me.production+" / "+opp.production;
       //message =" ?";
