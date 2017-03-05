@@ -92,7 +92,7 @@ public class AGSolution {
   public static final double FACTORY_COUNT_MULT = 1.0;
   public static final double POSITIONING_MULT = 0.0;
   public static final double TROOP_TANSIT_MULT = 0.0;
-  public static final double TROOP_CONVERGENCE_MULT = 2.0;
+  public static final double TROOP_CONVERGENCE_MULT = 1.0;
   public static final double DISTANCE_MULT = 0.0;
   
   public void calculateHeuristic(Simulation simulation) {
