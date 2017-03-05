@@ -94,7 +94,7 @@ public class GameState {
     
     entityCount = in.nextInt();
     // ** INIT PLAYER START */
-    Player.start = System.nanoTime();
+    Player.start = System.currentTimeMillis();
 
     Map<Integer, Bomb> newBombs = new HashMap<>();
 
