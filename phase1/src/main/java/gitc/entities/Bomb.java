@@ -18,6 +18,11 @@ public class Bomb extends MovableEntity {
     this.remainingTurns = turnsToTarget;
   }
   
+  @Override
+  public String toString() {
+    return "BOMB p("+playerId+") from "+source.id+" to "+destination.id+" t("+remainingTurns+")";
+  }
+  
   @SuppressWarnings("unused")
   public void read(Scanner in) {
     readPlayer(in.nextInt());
