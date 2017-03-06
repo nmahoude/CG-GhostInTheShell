@@ -11,15 +11,16 @@ public class Factory extends Entity {
   public int[] distances;
   
   // turn constant (no need to backup)
+  public int[] unitsReadyToFight  = { 0, 0 };
   public int[] future = new int[AGSolution.SIMULATION_DEPTH];
   public boolean isFront;
   public int unitsNeededCount;
   public int unitsNeededAt;
   public int unitsDisposable;
   public boolean isUnderAttack;
+  public Factory nearestEnnemyFactory;
 
   // simulation variables (need to backup)
-  public int[] unitsReadyToFight  = { 0, 0 };
   public int units;
   public int productionRate; // 0->3
   public int disabled = 0;
@@ -35,6 +36,7 @@ public class Factory extends Entity {
   public double b_influence;
   public boolean b_bombIncomming;
   public int b_distanceToFront;
+
   
 
   @Override
@@ -54,10 +56,6 @@ public class Factory extends Entity {
     b_influence = influence;
     b_bombIncomming = bombIncomming;
     b_distanceToFront = distanceToFront;
-
-    // juste need to be 0
-    unitsReadyToFight[0] = 0;
-    unitsReadyToFight[1] = 0;
   }
   public void restore() {
     super.restore();
@@ -69,10 +67,6 @@ public class Factory extends Entity {
     influence = b_influence;
     bombIncomming = b_bombIncomming;
     distanceToFront = b_distanceToFront;
-    
-    // juste need to be 0 
-    unitsReadyToFight[0] = 0;
-    unitsReadyToFight[1] = 0;
   }
   
   public Factory(int id, int factoriesCount) {
@@ -106,7 +100,7 @@ public class Factory extends Entity {
     
     // neighbors factory
     for (Factory factory : GameState.factories) {
-      if (factory != this && /*!factory.isNeutral()*/ factory.owner != null) {
+      if (factory != this && factory.owner != null) {
         double local = factory.units / factory.getDistanceTo(this);
         currentUnitsInfluence += (factory.owner == GameState.me ? 1.0 : -1.0) * local;
         totalUnits += Math.abs(local);

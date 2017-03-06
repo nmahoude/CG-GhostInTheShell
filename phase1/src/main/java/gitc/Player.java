@@ -28,12 +28,11 @@ import gitc.simulation.Simulation;
  *
  */
 public class Player {
-  public static final boolean DEBUG = false;
+  public static long MILLISECONDS_THINK_TIME = 46;
 
   private static Random random = new Random();
 
   private static Scanner in;
-  public static long NANOSECONDS_THINK_TIME = 45_000_000;
   public static int turn = 0;
   public static AG ag;
   public static GameState gameState;
@@ -126,10 +125,10 @@ public class Player {
 
     int simulations = 0;
     AGPool.reset();
-    while (System.nanoTime() - start < NANOSECONDS_THINK_TIME) {
+    while (System.currentTimeMillis() - start < MILLISECONDS_THINK_TIME) {
       simulations++;
       AGSolution solution;
-      if (random.nextInt(25) == 0) { /* TODO try to find a good value 100 -> 75 GOLD le jeudi soir*/
+      if (random.nextInt(6) == 0) { /* TODO try to find a good value 100 -> 75 GOLD le jeudi soir*/
         solution = AGPool.createRandom();
       } else {
         solution = AGPool.cross();

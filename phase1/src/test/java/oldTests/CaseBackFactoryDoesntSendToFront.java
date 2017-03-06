@@ -136,7 +136,7 @@ public class CaseBackFactoryDoesntSendToFront {
     in = new Scanner(source);
     state.read(in);
 
-    Player.NANOSECONDS_THINK_TIME = 4 * 1000_000_000L;
+    Player.MILLISECONDS_THINK_TIME = 40;
     Player.gameState = state;
     Player.simulation = new Simulation(state);
 

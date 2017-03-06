@@ -1,9 +1,10 @@
 package gitc.ag;
 
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.List;
 
 import gitc.GameState;
-import gitc.Player;
 import gitc.entities.Factory;
 import gitc.simulation.Simulation;
 import gitc.simulation.actions.Action;
@@ -13,7 +14,7 @@ public class AGSolution {
   public static DecimalFormat f = new DecimalFormat("#####.00");
 
   public double energy = 0;
-  public AGPlayer[] players = new AGPlayer[2];
+  public List<AGPlayer> players = new ArrayList<>();
 
   public String message;
 
@@ -31,13 +32,15 @@ public class AGSolution {
   public double troopsInTransitScore;
   public double troopsConvergenceScore;
   public double distanceBetweenFactoryScore;
+  public double frontBackScore;
+  
   public String name;
 
 
   public AGSolution() {
     energy = -1_000_000;
-    players[0] = new AGPlayer(GameState.me);
-    players[1] = new AGPlayer(GameState.opp);
+    players.add(new AGPlayer(GameState.me));
+    players.add(new AGPlayer(GameState.opp));
   }
 
   public AGSolution(String name) {
@@ -71,11 +74,12 @@ public class AGSolution {
 
   public String output() {
     String output = "";
+    TurnAction tAction = players.get(0).turnActions[0];
 
-    if (players[0].actions.size() == 0) {
+    if (tAction.actions.size() == 0) {
       output += "WAIT"+";";
     } else {
-      for (Action action  :players[0].actions) {
+      for (Action action  :tAction.actions) {
         output += action.output()+";";
       }
     }
@@ -90,13 +94,13 @@ public class AGSolution {
   public static final double FACTORY_COUNT_MULT = 1.0;
   public static final double POSITIONING_MULT = 0.0;
   public static final double TROOP_TANSIT_MULT = 0.0;
-  public static final double TROOP_CONVERGENCE_MULT = 2.0;
+  public static final double TROOP_CONVERGENCE_MULT = 1.0;
   public static final double DISTANCE_MULT = 0.0;
   
   public void calculateHeuristic(Simulation simulation) {
     this.simulation = simulation;
-    me = players[0];
-    opp = players[1];
+    me = players.get(0);
+    opp = players.get(1);
     
     if (me.dead) {
       energy = -1_000_000;
@@ -107,12 +111,13 @@ public class AGSolution {
       unitScore = getUnitsCountScore();
       productionScore = getProductionScore();
       influenceScore = updateFactoriesInfluence();
-      bombRemainingScore = getBombRemainingScore();
+      bombRemainingScore = 0; //getBombRemainingScore();
       factoryCountScore = getFactoryCountScore();
-      positioningScore = calculatePositioningOfUnitsScore();
-      troopsInTransitScore = getTroopsInTransitScore();
+      positioningScore = 0; //calculatePositioningOfUnitsScore();
+      troopsInTransitScore = 0; //getTroopsInTransitScore();
       troopsConvergenceScore = getTroopConvergenceScore();
       distanceBetweenFactoryScore = 0; //getDistanceBetweenFactoryScore();
+      frontBackScore = 0; //getBackScore();
       
       energy = 0
           + (UNIT_SCORE_MULT * unitScore) 
@@ -124,25 +129,51 @@ public class AGSolution {
           + (TROOP_TANSIT_MULT * troopsInTransitScore)
           + (TROOP_CONVERGENCE_MULT * troopsConvergenceScore)
           + (DISTANCE_MULT * distanceBetweenFactoryScore)
+          //+ (0.001 * frontBackScore)
           ; 
       if (opp.dead) {
         energy += 1_000;
       }
       // information about score
-      if (Player.DEBUG) {
-      message = "e("+f.format(energy)+")"
-                +" units("+f.format(unitScore)+")"
-                +" bomb("+f.format(bombRemainingScore)+")"
-                +" prod("+f.format(productionScore)+")"
-                +" inf("+f.format(influenceScore)+")" 
-                +" pos("+f.format(positioningScore)+")"
-                +" troop("+f.format(troopsInTransitScore)+")"
-                ;
-      }
+//      message = "e("+f.format(energy)+")"
+//                +" units("+f.format(unitScore)+")"
+//                +" bomb("+f.format(bombRemainingScore)+")"
+//                +" prod("+f.format(productionScore)+")"
+//                +" inf("+f.format(influenceScore)+")" 
+//                +" pos("+f.format(positioningScore)+")"
+//                +" troop("+f.format(troopsInTransitScore)+")"
+//                ;
       // debug
       //message = " prod: "+me.production+" / "+opp.production;
       //message =" ?";
     }
+  }
+
+  private double getBackScore() {
+    int minDist = 1_000_000;
+    int backUnitsCount = 0;
+    double backUnits = 0;
+    
+    for (Factory factory : GameState.myFactories) {
+      if (factory.isFront) {
+      } else {
+        if (factory.nearestEnnemyFactory != null) {
+          int distanceToEnnemy = factory.getDistanceTo(factory.nearestEnnemyFactory);
+          if (minDist > distanceToEnnemy) {
+            minDist = distanceToEnnemy;
+          }
+          backUnitsCount+=factory.units;
+          backUnits+=1.0 * factory.units / distanceToEnnemy;
+        } else {
+          backUnitsCount+=factory.units;
+          backUnits+=factory.units;
+        }
+      }
+    }
+    if (backUnitsCount == 0) {
+      return 0;
+    }
+    return 1.0 * backUnits * (1.0*minDist / backUnitsCount);
   }
 
   private double getDistanceBetweenFactoryScore() {

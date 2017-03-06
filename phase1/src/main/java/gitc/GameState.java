@@ -31,6 +31,9 @@ public class GameState {
   public static Factory center;
   public static Factory[] factories;
   public static Factory unkownFactory = new Factory(0, 1);
+  public static Factory[] myFactories;
+  public static Factory[] oppFactories;
+  public static Factory[] neutralFactories;
 
   
   public static List<Troop> troops = new ArrayList<>();
@@ -49,7 +52,8 @@ public class GameState {
       factories[id] = new Factory(id, factoryCount);
     }
     
-    inputSetupBackup.add("GameState state = new GameBuilder()");
+    if (TDD_OUPUT)
+      inputSetupBackup.add("GameState state = new GameBuilder()");
     
     for (int i = 0; i < linkCount; i++) {
       int factory1 = in.nextInt();
@@ -58,7 +62,8 @@ public class GameState {
       factories[factory1].setupDistance(factories[factory2], distance);
       factories[factory2].setupDistance(factories[factory1], distance);
       
-      inputSetupBackup.add(".l(new LB().f("+factory1+").t("+factory2+").d("+distance+").b())");
+      if (TDD_OUPUT)
+        inputSetupBackup.add(".l(new LB().f("+factory1+").t("+factory2+").d("+distance+").b())");
     }
  
     setupTddOutput();
@@ -89,7 +94,7 @@ public class GameState {
     
     entityCount = in.nextInt();
     // ** INIT PLAYER START */
-    Player.start = System.nanoTime();
+    Player.start = System.currentTimeMillis();
 
     Map<Integer, Bomb> newBombs = new HashMap<>();
 
@@ -152,6 +157,24 @@ public class GameState {
     preTurnUpdate();
     backupState();
     updateFuture();
+    updateNearestEnnemy();
+  }
+
+  /**
+   * For each factory, get the nearest ennemy
+   */
+  private void updateNearestEnnemy() {
+    for (Factory f1 : factories) {
+      int minDistance= 1_000_000;
+      Factory nearestFactory = null;
+      for (Factory f2 : factories) {
+        if (f2.owner != null && f2.owner != f1.owner && f2.getDistanceTo(f1) < minDistance) {
+          minDistance = f2.getDistanceTo(f1);
+          nearestFactory = f2;
+        }
+      }
+      f1.nearestEnnemyFactory = nearestFactory;
+    }
   }
 
   private void updateFuture() {
@@ -235,8 +258,27 @@ public class GameState {
   }
 
   private void preTurnUpdate() {
+    updateFactoryHelpers();
     updateFactoryInfluence();
     updateFactoryFront();
+  }
+
+  private void updateFactoryHelpers() {
+    List<Factory> mine = new ArrayList<>();
+    List<Factory> opp = new ArrayList<>();
+    List<Factory> neutral = new ArrayList<>();
+    for (Factory factory : factories) {
+      if (factory.isMe()) {
+        mine.add(factory);
+      } else if (factory.isOpponent()) {
+        opp.add(factory); 
+      } else {
+        neutral.add(factory);
+      }
+    }
+    myFactories = mine.toArray(new Factory[0]);
+    oppFactories = opp.toArray(new Factory[0]);
+    neutralFactories = neutral.toArray(new Factory[0]);
   }
 
   private void updateFactoryFront() {
